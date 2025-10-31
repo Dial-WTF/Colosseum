@@ -76,7 +76,59 @@ export function resetWormClient(): void {
 }
 
 /**
- * Generate a public URL for a file stored in Storj
+ * Generate a signed URL for a file stored in Storj
+ * This creates a temporary URL that allows public access without exposing credentials
+ * @param filename The file path within the bucket (e.g., "users/0x123.../avatar.png")
+ * @param expiresIn Time in seconds until the URL expires (default: 1 hour)
+ * @returns Promise resolving to the signed URL
+ */
+export async function getSignedUrl(filename: string, expiresIn: number = 3600): Promise<string> {
+  try {
+    const config = getStorjConfig();
+    
+    // Import AWS SDK utilities
+    const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
+    const { getSignedUrl: awsGetSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+    
+    // Create a dedicated S3 client for signed URLs
+    const s3Client = new S3Client({
+      endpoint: config.endpoint,
+      region: 'us-east-1', // Storj uses us-east-1 as default
+      credentials: {
+        accessKeyId: config.credentials.accessKeyId,
+        secretAccessKey: config.credentials.secretAccessKey,
+      },
+      forcePathStyle: true, // Required for Storj
+    });
+    
+    // Remove leading slash if present
+    const cleanFilename = filename.startsWith('/') ? filename.slice(1) : filename;
+    
+    // Create the GetObject command
+    const command = new GetObjectCommand({
+      Bucket: config.bucket,
+      Key: cleanFilename,
+    });
+
+    // Generate the signed URL
+    const signedUrl = await awsGetSignedUrl(s3Client, command, { expiresIn });
+    
+    console.log('✅ Generated signed URL:', {
+      filename: cleanFilename,
+      expiresIn: `${expiresIn}s`,
+      urlLength: signedUrl.length,
+    });
+    
+    return signedUrl;
+  } catch (error) {
+    console.error('❌ Error generating signed URL:', error);
+    throw error;
+  }
+}
+
+/**
+ * Generate a public URL for a file stored in Storj (legacy method)
+ * @deprecated Use getSignedUrl instead for better security
  * @param filename The file path within the bucket (e.g., "users/0x123.../avatar.png")
  * @returns The public URL to access the file
  */
@@ -84,7 +136,7 @@ export function getPublicUrl(filename: string): string {
   const baseUrl = process.env.STORJ_PUBLIC_URL || process.env.NEXT_PUBLIC_STORJ_PUBLIC_URL;
   
   if (!baseUrl) {
-    console.warn('STORJ_PUBLIC_URL not set. Files may not be publicly accessible.');
+    console.warn('STORJ_PUBLIC_URL not set. Use getSignedUrl() instead for secure access.');
     return filename;
   }
   
@@ -132,7 +184,7 @@ export async function listObjects(prefix: string): Promise<Array<{
 
     const response = await s3Client.send(command);
     
-    return (response.Contents || []).map((item) => ({
+    return (response.Contents || []).map((item: any) => ({
       key: item.Key || '',
       size: item.Size || 0,
       lastModified: item.LastModified?.toISOString() || new Date().toISOString(),

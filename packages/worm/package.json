@@ -28,6 +28,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.921.0",
+    "@aws-sdk/s3-request-presigner": "^3.921.0",
     "@decoperations/s3worm": "^0.3.3",
     "@dial/types": "workspace:*"
   },

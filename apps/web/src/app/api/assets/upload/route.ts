@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getWormClient, getPublicUrl } from '@dial/worm';
+import { getWormClient, getSignedUrl } from '@dial/worm';
 
 /**
  * POST /api/assets/upload
@@ -81,8 +81,8 @@ export async function POST(request: NextRequest) {
     const worm = getWormClient();
     await worm.putBytes(filename, buffer, file.type);
 
-    // Generate public URL
-    const publicUrl = getPublicUrl(filename);
+    // Generate signed URL (expires in 24 hours)
+    const signedUrl = await getSignedUrl(filename, 86400);
 
     // Determine asset type
     const assetType = file.type.startsWith('image/') 
@@ -94,7 +94,7 @@ export async function POST(request: NextRequest) {
       : 'file';
 
     return NextResponse.json({
-      url: publicUrl,
+      url: signedUrl,
       filename,
       originalName: file.name,
       size: file.size,
