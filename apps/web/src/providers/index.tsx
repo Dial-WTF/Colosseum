@@ -1,12 +1,13 @@
 'use client';
 
-import { ReactNode, useMemo } from 'react';
+import { ReactNode, useMemo, useEffect } from 'react';
 import { UserProvider } from './user-context';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
 import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
 import { clusterApiUrl } from '@solana/web3.js';
+import { autoMigrate } from '@/lib/storage-migration';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -27,6 +28,13 @@ export function Providers({ children }: ProvidersProps) {
     ],
     []
   );
+
+  // Run storage migration on app startup
+  useEffect(() => {
+    autoMigrate().catch(error => {
+      console.error('Failed to run storage migration:', error);
+    });
+  }, []);
 
   return (
     <ConnectionProvider endpoint={endpoint}>

@@ -21,10 +21,12 @@ import { ProjectHeader } from "./project-header";
 import { ProjectList } from "./project-list";
 import { CDBurner } from "./cd-burner";
 import { MintPackager, type PackagedNFTData } from "./mint-packager";
+import { StorageWarning } from "./storage-warning";
 import { useUser } from "@/providers/user-context";
 import {
   createProject,
   getProject,
+  getProjectWithData,
   updateProject as updateProjectApi,
 } from "@/lib/project-service";
 import { useSolanaWallet } from "@/hooks/use-solana-wallet";
@@ -84,6 +86,10 @@ export function AudioStudioProject() {
         await handleAutoSave();
       } catch (error) {
         console.error("Auto-save failed:", error);
+        // Show user-friendly error message
+        if (error instanceof Error && error.message.includes('quota')) {
+          alert('⚠️ Storage is full. Please delete old projects to free up space.\n\nGo to "My Collection" to manage your projects.');
+        }
       } finally {
         setIsAutoSaving(false);
       }
@@ -100,8 +106,8 @@ export function AudioStudioProject() {
   const initializeProject = async () => {
     try {
       if (projectId) {
-        // Load existing project
-        const existingProject = await getProject(projectId);
+        // Load existing project with data from IndexedDB
+        const existingProject = await getProjectWithData(projectId);
         if (existingProject) {
           setProject(existingProject);
         }
@@ -263,6 +269,13 @@ export function AudioStudioProject() {
     try {
       const audioData = projectToLoad.data as AudioProjectData;
 
+      // Check if audio URL exists and is valid before trying to load
+      if (!audioData.audioUrl || audioData.audioUrl.trim() === "") {
+        console.log("⏳ No audio URL available yet - waiting for audio to be generated or uploaded");
+        setIsLoaded(false);
+        return;
+      }
+
       // Load audio
       wavesurferRef.current.load(audioData.audioUrl);
 
@@ -344,15 +357,21 @@ export function AudioStudioProject() {
         thumbnail,
       });
 
-      // Reload project to get updated state
-      const updatedProject = await getProject(project.id);
+      // Reload project to get updated state (with IndexedDB data)
+      const updatedProject = await getProjectWithData(project.id);
       if (updatedProject) {
         setProject(updatedProject);
         setHasUnsavedChanges(false);
       }
     } catch (error) {
       console.error("Auto-save failed:", error);
-      // Don't throw - auto-save failures should be silent
+      
+      // If storage quota exceeded, provide helpful error message
+      if (error instanceof Error && error.message.includes('quota')) {
+        throw new Error('Storage quota exceeded. Please delete old projects.');
+      }
+      
+      // Don't throw other errors - auto-save failures should be mostly silent
     }
   };
 
@@ -495,10 +514,30 @@ export function AudioStudioProject() {
       regionsPluginRef.current?.clearRegions();
       setSelectedRegion(null);
 
-      setUploadProgress(100);
+      setUploadProgress(90);
 
-      // Mark as having unsaved changes to trigger auto-save
-      setHasUnsavedChanges(true);
+      // Step 4: Immediately update project data to ensure proper reload
+      console.log("💾 Updating project data...");
+      const audioData: AudioProjectData = {
+        type: "audio",
+        audioUrl: uploadedUrl,
+        duration: audioBuffer.duration,
+        regions: [],
+        volume: volume,
+        exportUrl: uploadedUrl,
+      };
+
+      const updatedProject = await updateProjectApi(project.id, {
+        data: audioData,
+      });
+
+      if (updatedProject) {
+        setProject(updatedProject);
+        setHasUnsavedChanges(false);
+        console.log("✅ Project updated with uploaded audio");
+      }
+
+      setUploadProgress(100);
 
       console.log("✅ Audio upload complete!");
 
@@ -757,7 +796,7 @@ export function AudioStudioProject() {
     prompt: string;
     metadata?: any;
   }) => {
-    if (!wavesurferRef.current) return;
+    if (!wavesurferRef.current || !project) return;
 
     try {
       // Load AI-generated audio
@@ -773,11 +812,30 @@ export function AudioStudioProject() {
       const audioContext = new AudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       audioBufferRef.current = audioBuffer;
-      setHasUnsavedChanges(true);
 
       // Log metadata if available (for Suno tracks)
       if (result.metadata) {
         console.log("🎵 Loaded track metadata:", result.metadata);
+      }
+
+      // Immediately update project data to ensure proper reload
+      const audioData: AudioProjectData = {
+        type: "audio",
+        audioUrl: result.url,
+        duration: audioBuffer.duration,
+        regions: [],
+        volume: volume,
+        exportUrl: result.url,
+      };
+
+      const updatedProject = await updateProjectApi(project.id, {
+        data: audioData,
+      });
+
+      if (updatedProject) {
+        setProject(updatedProject);
+        setHasUnsavedChanges(false);
+        console.log("✅ Project updated with AI-generated audio");
       }
     } catch (error) {
       console.error("Error loading AI audio:", error);
@@ -888,6 +946,9 @@ export function AudioStudioProject() {
 
   return (
     <div className="flex flex-col h-screen">
+      {/* Storage Warning */}
+      <StorageWarning />
+      
       {/* Project Header */}
       <ProjectHeader project={project} onUpdateProject={handleUpdateProject} />
 

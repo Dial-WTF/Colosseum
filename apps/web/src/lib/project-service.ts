@@ -296,6 +296,19 @@ export async function getStorageStats(): Promise<{
 }
 
 /**
+ * Get project with large data loaded from IndexedDB
+ */
+export async function getProjectWithData(id: string): Promise<Project | null> {
+  const repo = await getProjectRepository();
+  if (!repo) {
+    return localStorageService.getProjectWithData(id);
+  }
+  // For Storj, just return the project (data is already remote)
+  const address = requireUserAddress();
+  return repo.getProject(address, id);
+}
+
+/**
  * Legacy projectStorage object for compatibility
  * Provides the same interface as the old localStorage-based service
  */

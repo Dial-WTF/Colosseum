@@ -25,6 +25,7 @@ import { ProjectList } from './project-list';
 import { MintPackager, type PackagedNFTData } from './mint-packager';
 import { AssetBrowser, type Asset } from './asset-browser';
 import { useUser } from '@/providers/user-context';
+import { mintNFT, uploadAsset } from '@/lib/nft-mint-client';
 
 export function AudioStudio() {
   const waveformRef = useRef<HTMLDivElement>(null);
@@ -580,9 +581,6 @@ export function AudioStudio() {
         const uploadResult = await uploadAsset(file, address, 'nft-covers');
         coverImageUrl = uploadResult.url;
       }
-
-      // Import the minting client
-      const { mintNFT, uploadAsset } = await import('@/lib/nft-mint-client');
 
       // Mint the NFT
       const result = await mintNFT(
