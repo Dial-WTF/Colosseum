@@ -56,6 +56,7 @@ export function AudioStudioProject() {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const [isWaveSurferReady, setIsWaveSurferReady] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { address, profile } = useUser();
@@ -155,11 +156,32 @@ export function AudioStudioProject() {
     }
   };
 
-  // Initialize WaveSurfer
+  // Initialize WaveSurfer when project is ready
   useEffect(() => {
-    if (!waveformRef.current || wavesurferRef.current) return;
+    // Only initialize when we have a project (ensures DOM is ready)
+    if (!project) {
+      console.log("⏳ Waiting for project to initialize WaveSurfer...");
+      return;
+    }
+
+    console.log("🎵 WaveSurfer initialization effect running...", {
+      waveformRefExists: !!waveformRef.current,
+      wavesurferExists: !!wavesurferRef.current,
+      projectExists: !!project,
+    });
+
+    if (!waveformRef.current) {
+      console.warn("⚠️ waveformRef.current is null - waiting for DOM...");
+      return;
+    }
+
+    if (wavesurferRef.current) {
+      console.log("✅ WaveSurfer already initialized");
+      return;
+    }
 
     try {
+      console.log("🚀 Creating WaveSurfer instance...");
       const regionsPlugin = RegionsPlugin.create();
       regionsPluginRef.current = regionsPlugin;
 
@@ -177,6 +199,8 @@ export function AudioStudioProject() {
       });
 
       wavesurferRef.current = wavesurfer;
+      setIsWaveSurferReady(true);
+      console.log("✅ WaveSurfer instance created successfully!");
 
       // Event listeners
       wavesurfer.on("play", () => setIsPlaying(true));
@@ -184,6 +208,7 @@ export function AudioStudioProject() {
       wavesurfer.on("ready", () => {
         setIsLoaded(true);
         setDuration(wavesurfer.getDuration());
+        console.log("✅ Audio loaded and ready");
       });
       wavesurfer.on("audioprocess", () => {
         setCurrentTime(wavesurfer.getCurrentTime());
@@ -192,7 +217,7 @@ export function AudioStudioProject() {
         setCurrentTime(wavesurfer.getCurrentTime());
       });
       wavesurfer.on("error", (error) => {
-        console.error("WaveSurfer error:", error);
+        console.error("❌ WaveSurfer error:", error);
       });
 
       // Handle region selection
@@ -208,12 +233,15 @@ export function AudioStudioProject() {
       }
 
       return () => {
+        console.log("🧹 Cleaning up WaveSurfer...");
         wavesurfer.destroy();
+        setIsWaveSurferReady(false);
       };
     } catch (error) {
-      console.error("Failed to initialize WaveSurfer:", error);
+      console.error("❌ Failed to initialize WaveSurfer:", error);
+      setIsWaveSurferReady(false);
     }
-  }, []);
+  }, [project]);
 
   // Load project data when project changes
   useEffect(() => {
@@ -355,11 +383,6 @@ export function AudioStudioProject() {
 
   const processAudioFile = async (file: File) => {
     // Validate prerequisites with user feedback
-    if (!wavesurferRef.current) {
-      alert("Audio player not ready. Please refresh the page and try again.");
-      return;
-    }
-
     if (!project) {
       alert("No project selected. Please create or select a project first.");
       return;
@@ -368,6 +391,18 @@ export function AudioStudioProject() {
     if (!address) {
       alert(
         "Wallet not connected. Please connect your wallet to upload files."
+      );
+      return;
+    }
+
+    if (!wavesurferRef.current) {
+      console.error("❌ WaveSurfer not initialized", {
+        isWaveSurferReady,
+        wavesurferExists: !!wavesurferRef.current,
+        waveformRefExists: !!waveformRef.current,
+      });
+      alert(
+        "Audio player is still initializing. Please wait a moment and try again.\n\nIf the problem persists, try refreshing the page."
       );
       return;
     }
@@ -907,13 +942,17 @@ export function AudioStudioProject() {
               {/* Upload */}
               <button
                 onClick={uploadAudio}
-                disabled={isUploading || !address || !project}
+                disabled={
+                  isUploading || !address || !project || !isWaveSurferReady
+                }
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title={
                   !address
                     ? "Connect wallet to upload"
                     : !project
                     ? "Create a project first"
+                    : !isWaveSurferReady
+                    ? "Audio player is initializing..."
                     : isUploading
                     ? "Upload in progress..."
                     : "Upload audio file (MP3, WAV, OGG, etc.)"
@@ -948,6 +987,12 @@ export function AudioStudioProject() {
               {address && !project && (
                 <span className="text-xs text-amber-500 font-medium">
                   ⚠️ Create a project first
+                </span>
+              )}
+              {address && project && !isWaveSurferReady && (
+                <span className="text-xs text-blue-500 font-medium flex items-center gap-1">
+                  <span className="animate-spin rounded-full h-2 w-2 border-b border-blue-500"></span>
+                  Initializing audio player...
                 </span>
               )}
 
@@ -1079,9 +1124,15 @@ export function AudioStudioProject() {
               {!isLoaded && !isUploading && (
                 <div
                   className={`flex items-center justify-center h-[150px] text-muted-foreground ${
-                    address && project ? "cursor-pointer" : "cursor-not-allowed"
+                    address && project && isWaveSurferReady
+                      ? "cursor-pointer"
+                      : "cursor-not-allowed"
                   }`}
-                  onClick={address && project ? uploadAudio : undefined}
+                  onClick={
+                    address && project && isWaveSurferReady
+                      ? uploadAudio
+                      : undefined
+                  }
                 >
                   <div className="text-center">
                     <Upload size={48} className="mx-auto mb-4 opacity-50" />
@@ -1101,6 +1152,16 @@ export function AudioStudioProject() {
                         </p>
                         <p className="text-sm opacity-75">
                           Create or select a project first
+                        </p>
+                      </>
+                    ) : !isWaveSurferReady ? (
+                      <>
+                        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                        <p className="text-lg font-medium mb-2 text-blue-500">
+                          Initializing Audio Player...
+                        </p>
+                        <p className="text-sm opacity-75">
+                          Please wait a moment
                         </p>
                       </>
                     ) : (
