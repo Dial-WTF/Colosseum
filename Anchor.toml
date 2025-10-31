@@ -13,7 +13,7 @@ bonding_curve = "BC11111111111111111111111111111111111111111"
 bonding_curve = "BC11111111111111111111111111111111111111111"
 
 [programs.mainnet]
-bonding_curve = "BC11111111111111111111111111111111111111111"
+bonding_curve = "8KQf2fczuHCXXMWZnVogCS971rpuBxmMia93qg1BdP8G"
 
 [registry]
 url = "https://api.apr.dev"

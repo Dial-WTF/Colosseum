@@ -71,27 +71,31 @@ export function BondingCurveEditor({ config, onChange, className = '' }: Bonding
       label: 'Linear',
       description: 'Constant price increase per edition',
       color: 'text-blue-500',
+      available: true,
     },
     {
       type: 'exponential' as const,
       icon: Activity,
       label: 'Exponential',
-      description: 'Accelerating price growth',
+      description: 'Coming Soon',
       color: 'text-orange-500',
+      available: false,
     },
     {
       type: 'logarithmic' as const,
       icon: TrendingDown,
       label: 'Logarithmic',
-      description: 'Diminishing price increases',
+      description: 'Coming Soon',
       color: 'text-green-500',
+      available: false,
     },
     {
       type: 'bezier' as const,
       icon: Sparkles,
       label: 'Custom Bezier',
-      description: 'Drag control points to shape curve',
+      description: 'Coming Soon',
       color: 'text-purple-500',
+      available: false,
     },
   ];
 
@@ -101,21 +105,29 @@ export function BondingCurveEditor({ config, onChange, className = '' }: Bonding
       <div>
         <h3 className="text-sm font-semibold mb-3">Curve Type</h3>
         <div className="grid grid-cols-4 gap-3">
-          {curveTypes.map(({ type, icon: Icon, label, description, color }) => (
+          {curveTypes.map(({ type, icon: Icon, label, description, color, available }) => (
             <motion.button
               key={type}
-              onClick={() => handleTypeChange(type)}
-              className={`p-3 rounded-lg border-2 transition-all text-left ${
+              onClick={() => available && handleTypeChange(type)}
+              disabled={!available}
+              className={`p-3 rounded-lg border-2 transition-all text-left relative ${
                 curveType === type
                   ? 'border-primary bg-primary/10'
-                  : 'border-border hover:border-primary/50'
+                  : available
+                  ? 'border-border hover:border-primary/50'
+                  : 'border-border opacity-50 cursor-not-allowed'
               }`}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+              whileHover={available ? { scale: 1.02 } : {}}
+              whileTap={available ? { scale: 0.98 } : {}}
             >
               <Icon className={`h-5 w-5 mb-2 ${color}`} />
               <p className="font-semibold text-sm">{label}</p>
               <p className="text-xs text-muted-foreground mt-1">{description}</p>
+              {!available && (
+                <span className="absolute top-2 right-2 text-[10px] px-2 py-0.5 bg-muted rounded text-muted-foreground">
+                  Soon
+                </span>
+              )}
             </motion.button>
           ))}
         </div>

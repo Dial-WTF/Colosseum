@@ -18,9 +18,9 @@ import {
 import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
 import { calculateBezierPrice as evalBezierPrice } from "@dial/bonding-curve";
 
-// Program ID (will be set after deployment)
+// Program ID - Mainnet Deployment (Oct 31, 2025)
 export const BONDING_CURVE_PROGRAM_ID = new PublicKey(
-  "BC11111111111111111111111111111111111111111"
+  "8KQf2fczuHCXXMWZnVogCS971rpuBxmMia93qg1BdP8G"
 );
 
 // Metaplex Token Metadata Program ID

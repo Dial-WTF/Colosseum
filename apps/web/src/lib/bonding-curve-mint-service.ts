@@ -61,22 +61,23 @@ export interface BondingCurveCollection {
  */
 function getConnection(): Connection {
   const rpcUrl =
-    process.env.SOLANA_RPC_URL ||
     process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
-    'https://api.devnet.solana.com';
+    'https://api.mainnet-beta.solana.com';
   return new Connection(rpcUrl, 'confirmed');
 }
 
 /**
  * Convert BondingCurveConfig type to on-chain CurveType
+ * NOTE: Only Linear is currently deployed on mainnet
  */
 function convertCurveType(type: string): CurveType {
   switch (type.toLowerCase()) {
-    case 'exponential':
-      return CurveType.Exponential;
-    case 'logarithmic':
-      return CurveType.Logarithmic;
     case 'linear':
+      return CurveType.Linear;
+    case 'exponential':
+    case 'logarithmic':
+    case 'bezier':
+      throw new Error(`${type} curve type coming soon! Only Linear is currently available.`);
     default:
       return CurveType.Linear;
   }
