@@ -1,0 +1,8 @@
+{
+  "buildCommand": "pnpm run build:all",
+  "installCommand": "pnpm install",
+  "framework": null,
+  "outputDirectory": "apps/web/.next",
+  "ignoreCommand": "git diff HEAD^ HEAD --quiet . ':(exclude)*.md' ':(exclude)*.txt'"
+}
+

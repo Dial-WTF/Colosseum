@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "pnpm --filter web dev",
     "build": "pnpm --filter web build",
+    "build:all": "pnpm --filter '@dial/worm' build && pnpm --filter '@dial/bonding-curve-program' build && pnpm --filter web build",
     "start": "pnpm --filter web start",
     "lint": "pnpm --filter web lint",
     "type-check": "pnpm --filter web type-check",
