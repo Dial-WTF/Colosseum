@@ -34,6 +34,7 @@ export {
   getWormClient,
   resetWormClient,
   getStorjConfig,
+  getPublicUrl,
   type StorjConfig,
 } from './client';
 

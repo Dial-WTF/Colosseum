@@ -6,7 +6,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { usePrivy } from '@privy-io/react-auth';
+import { usePrivy, useWallets } from '@privy-io/react-auth';
 import { setCurrentUserAddress } from '@/lib/project-service';
 
 interface UserProfile {
@@ -52,11 +52,13 @@ interface UserProviderProps {
 
 export function UserProvider({ children }: UserProviderProps) {
   const { user, authenticated, ready } = usePrivy();
+  const { wallets } = useWallets();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
-  // Extract wallet address from Privy user
-  const address = user?.wallet?.address || null;
+  // Extract Solana wallet address from Privy user
+  const solanaWallet = wallets.find((wallet) => wallet.walletClientType === 'solana');
+  const address = solanaWallet?.address || null;
 
   // Sync address with project service
   useEffect(() => {

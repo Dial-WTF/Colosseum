@@ -1,20 +1,18 @@
 'use client';
 
 import { Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { AudioStudioProject } from '#/components/studio/audio-studio-project';
 import { AudioStudio } from '#/components/studio/audio-studio';
 
 export const dynamic = 'force-dynamic';
 
 function AudioStudioWrapper() {
-  // Check if we're in project mode via URL params
-  if (typeof window !== 'undefined') {
-    const searchParams = new URLSearchParams(window.location.search);
-    const hasProjectParams = searchParams.has('projectId') || searchParams.has('mode');
-    
-    if (hasProjectParams) {
-      return <AudioStudioProject />;
-    }
+  const searchParams = useSearchParams();
+  const hasProjectParams = searchParams?.has('projectId') || searchParams?.has('mode');
+  
+  if (hasProjectParams) {
+    return <AudioStudioProject />;
   }
   
   return <AudioStudio />;

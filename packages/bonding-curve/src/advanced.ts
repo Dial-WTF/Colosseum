@@ -1,5 +1,6 @@
 import Decimal from 'decimal.js';
 import type { BondingCurveConfig } from './types';
+import { calculateBezierPrice } from './bezier';
 
 // Configure Decimal.js for high precision
 Decimal.set({ precision: 20, rounding: Decimal.ROUND_DOWN });
@@ -11,7 +12,7 @@ export function calculatePricePrecise(
   currentSupply: number,
   config: BondingCurveConfig
 ): Decimal {
-  const { type, basePrice, priceIncrement } = config;
+  const { type, basePrice, priceIncrement, maxSupply } = config;
 
   let price: Decimal;
 
@@ -33,6 +34,19 @@ export function calculatePricePrecise(
       price = new Decimal(basePrice).plus(
         new Decimal(logValue).times(priceIncrement)
       );
+      break;
+
+    case 'bezier':
+      if (!config.bezierCurve) {
+        // Fallback to base price if no curve data
+        price = new Decimal(basePrice);
+      } else {
+        price = calculateBezierPrice(
+          currentSupply,
+          maxSupply,
+          config.bezierCurve
+        );
+      }
       break;
 
     default:

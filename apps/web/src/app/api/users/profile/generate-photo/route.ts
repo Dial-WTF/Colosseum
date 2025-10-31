@@ -1,13 +1,19 @@
 /**
  * AI Profile Photo Generation API
- * Uses Replicate to generate profile photos
+ * Uses Replicate (primary) with FAL.ai fallback
  */
 
 import { NextRequest, NextResponse } from 'next/server';
 import Replicate from 'replicate';
+import * as fal from '@fal-ai/serverless-client';
 
 const replicate = new Replicate({
   auth: process.env.REPLICATE_API_TOKEN || '',
+});
+
+// Configure FAL.ai client
+fal.config({
+  credentials: process.env.FAL_KEY || '',
 });
 
 /**
@@ -25,13 +31,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!process.env.REPLICATE_API_TOKEN) {
-      return NextResponse.json(
-        { error: 'Replicate API token not configured' },
-        { status: 500 }
-      );
-    }
-
     // Style presets for profile photos
     const stylePrompts: Record<string, string> = {
       avatar: 'professional avatar, clean background, centered portrait, high quality',
@@ -43,36 +42,80 @@ export async function POST(request: NextRequest) {
     };
 
     const fullPrompt = `${prompt}, ${stylePrompts[style] || stylePrompts.avatar}`;
+    const negativePrompt = 'blurry, low quality, distorted, watermark, text, multiple people, cropped';
 
-    // Using SDXL for image generation
-    const output = await replicate.run(
-      'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
-      {
-        input: {
-          prompt: fullPrompt,
-          negative_prompt: 'blurry, low quality, distorted, watermark, text, multiple people, cropped',
-          width: 512,
-          height: 512,
-          num_outputs: 1,
-          guidance_scale: 7.5,
-          num_inference_steps: 50,
-        },
+    // Try Replicate first if configured
+    if (process.env.REPLICATE_API_TOKEN) {
+      try {
+        console.log('🔷 Attempting profile photo generation with Replicate...');
+        const output = await replicate.run(
+          'stability-ai/sdxl:39ed52f2a78e934b3ba6e2a89f5b1c712de7dfea535525255b1aa35c5565e08b',
+          {
+            input: {
+              prompt: fullPrompt,
+              negative_prompt: negativePrompt,
+              width: 512,
+              height: 512,
+              num_outputs: 1,
+              guidance_scale: 7.5,
+              num_inference_steps: 50,
+            },
+          }
+        ) as string[];
+
+        if (output && output.length > 0) {
+          console.log('✅ Replicate generation successful');
+          return NextResponse.json({
+            imageUrl: output[0],
+            prompt: fullPrompt,
+            provider: 'replicate',
+          });
+        }
+      } catch (replicateError: any) {
+        console.warn('⚠️ Replicate failed, falling back to FAL.ai:', replicateError.message);
       }
-    ) as string[];
+    }
 
-    if (!output || output.length === 0) {
+    // Fall back to FAL.ai
+    if (!process.env.FAL_KEY) {
       return NextResponse.json(
-        { error: 'Failed to generate image' },
+        { error: 'No AI image generation service configured. Please set REPLICATE_API_TOKEN or FAL_KEY.' },
         { status: 500 }
       );
     }
 
+    console.log('🟢 Using FAL.ai for profile photo generation...');
+    const result = await fal.subscribe('fal-ai/flux/schnell', {
+      input: {
+        prompt: fullPrompt,
+        image_size: 'square',
+        num_inference_steps: 4,
+        num_images: 1,
+        enable_safety_checker: true,
+      },
+      logs: true,
+      onQueueUpdate: (update) => {
+        if (update.status === 'IN_PROGRESS') {
+          console.log('FAL.ai progress:', update.logs?.map(log => log.message).join('\n'));
+        }
+      },
+    }) as any;
+
+    if (!result.data?.images?.[0]?.url) {
+      return NextResponse.json(
+        { error: 'Failed to generate profile photo with FAL.ai' },
+        { status: 500 }
+      );
+    }
+
+    console.log('✅ FAL.ai generation successful');
     return NextResponse.json({
-      imageUrl: output[0],
+      imageUrl: result.data.images[0].url,
       prompt: fullPrompt,
+      provider: 'fal',
     });
   } catch (error: any) {
-    console.error('Photo generation error:', error);
+    console.error('❌ Photo generation error:', error);
     return NextResponse.json(
       { error: error.message || 'Failed to generate photo' },
       { status: 500 }

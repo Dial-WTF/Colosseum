@@ -38,6 +38,25 @@ export function PrivyProviderWrapper({ children }: PrivyProviderWrapperProps) {
         embeddedWallets: {
           createOnLogin: 'users-without-wallets',
         },
+        // Configure default chain to Solana
+        defaultChain: {
+          id: 900, // Solana mainnet
+          name: 'Solana',
+          network: 'mainnet-beta',
+          nativeCurrency: {
+            name: 'SOL',
+            symbol: 'SOL',
+            decimals: 9,
+          },
+          rpcUrls: {
+            default: {
+              http: ['https://api.mainnet-beta.solana.com'],
+            },
+            public: {
+              http: ['https://api.mainnet-beta.solana.com'],
+            },
+          },
+        },
         // Configure supported login methods
         loginMethods: ['email', 'wallet', 'google', 'twitter'],
         // Configure supported chains (Solana mainnet and devnet)

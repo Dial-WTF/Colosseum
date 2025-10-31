@@ -75,3 +75,25 @@ export function resetWormClient(): void {
   wormClient = null;
 }
 
+/**
+ * Generate a public URL for a file stored in Storj
+ * @param filename The file path within the bucket (e.g., "users/0x123.../avatar.png")
+ * @returns The public URL to access the file
+ */
+export function getPublicUrl(filename: string): string {
+  const baseUrl = process.env.STORJ_PUBLIC_URL || process.env.NEXT_PUBLIC_STORJ_PUBLIC_URL;
+  
+  if (!baseUrl) {
+    console.warn('STORJ_PUBLIC_URL not set. Files may not be publicly accessible.');
+    return filename;
+  }
+  
+  // Remove leading slash if present
+  const cleanFilename = filename.startsWith('/') ? filename.slice(1) : filename;
+  
+  // Ensure base URL doesn't end with slash
+  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
+  
+  return `${cleanBaseUrl}/${cleanFilename}`;
+}
+

@@ -18,26 +18,41 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { AIGeneratorPanel } from './ai-generator-panel';
+import { ProjectList } from './project-list';
+import { AssetBrowser, type Asset } from './asset-browser';
 
 export function ImageStudio() {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<Canvas | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fabricRef = useRef<typeof import('fabric') | null>(null);
+  const isInitializing = useRef(false);
   
   const [selectedObject, setSelectedObject] = useState<FabricObject | null>(null);
   const [textColor, setTextColor] = useState('#000000');
   const [backgroundColor, setBackgroundColor] = useState('#ffffff');
   const [fontSize, setFontSize] = useState(40);
+  const [showProjectList, setShowProjectList] = useState(true);
   const [showAIPanel, setShowAIPanel] = useState(true);
+  const [showAssetBrowser, setShowAssetBrowser] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState('Initializing canvas editor...');
+  const [isDraggingAsset, setIsDraggingAsset] = useState(false);
 
   // Initialize canvas
   useEffect(() => {
-    if (!canvasRef.current || fabricCanvasRef.current) return;
+    // Skip if already initialized
+    if (fabricCanvasRef.current || isInitializing.current) {
+      return;
+    }
+
+    // Wait for canvas to be mounted
+    if (!canvasRef.current) {
+      return;
+    }
 
     let mounted = true;
+    isInitializing.current = true;
 
     const initCanvas = async () => {
       try {
@@ -46,15 +61,10 @@ export function ImageStudio() {
         // Dynamically import fabric only on client side
         const fabricModule = await import('fabric');
         
-        if (!mounted) return;
-        setLoadingStep('Setting up canvas renderer...');
+        if (!mounted || !canvasRef.current) return;
         
+        setLoadingStep('Setting up canvas renderer...');
         fabricRef.current = fabricModule;
-
-        if (!canvasRef.current) {
-          setIsLoading(false);
-          return;
-        }
 
         setLoadingStep('Initializing drawing surface...');
         
@@ -92,7 +102,7 @@ export function ImageStudio() {
         }, 300);
       } catch (error) {
         console.error('Failed to load fabric.js:', error);
-        setLoadingStep('Error loading editor');
+        setLoadingStep('Error loading editor - please refresh');
         setTimeout(() => {
           if (mounted) {
             setIsLoading(false);
@@ -105,8 +115,10 @@ export function ImageStudio() {
 
     return () => {
       mounted = false;
+      isInitializing.current = false;
       if (fabricCanvasRef.current) {
         fabricCanvasRef.current.dispose();
+        fabricCanvasRef.current = null;
       }
     };
   }, []);
@@ -149,7 +161,9 @@ export function ImageStudio() {
     reader.onload = (event) => {
       const imgUrl = event.target?.result as string;
       
-      fabricRef.current!.Image.fromURL(imgUrl, (img) => {
+      fabricRef.current!.Image.fromURL(imgUrl).then((img) => {
+        if (!fabricCanvasRef.current) return;
+        
         // Scale image to fit canvas
         const scale = Math.min(
           400 / (img.width || 1),
@@ -162,13 +176,26 @@ export function ImageStudio() {
           top: 100,
         });
 
-        fabricCanvasRef.current?.add(img);
-        fabricCanvasRef.current?.setActiveObject(img);
-        fabricCanvasRef.current?.renderAll();
+        fabricCanvasRef.current.add(img);
+        fabricCanvasRef.current.setActiveObject(img);
+        fabricCanvasRef.current.renderAll();
+      }).catch((error) => {
+        console.error('Failed to load image:', error);
+        alert('Failed to load image. Please try again.');
       });
     };
     
+    reader.onerror = () => {
+      console.error('Failed to read file');
+      alert('Failed to read file. Please try again.');
+    };
+    
     reader.readAsDataURL(file);
+    
+    // Reset file input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   // Delete selected object
@@ -236,6 +263,7 @@ export function ImageStudio() {
     const dataURL = fabricCanvasRef.current.toDataURL({
       format: 'png',
       quality: 1,
+      multiplier: 1,
     });
 
     const link = document.createElement('a');
@@ -250,7 +278,7 @@ export function ImageStudio() {
   const handleAIGenerate = (result: { url: string; prompt: string }) => {
     if (!fabricCanvasRef.current || !fabricRef.current) return;
 
-    fabricRef.current.Image.fromURL(result.url, (img) => {
+    fabricRef.current.Image.fromURL(result.url).then((img) => {
       // Scale image to fit canvas
       const scale = Math.min(
         600 / (img.width || 1),
@@ -269,42 +297,130 @@ export function ImageStudio() {
     });
   };
 
-   if (isLoading) {
-     return (
-       <div className="flex min-h-screen items-center justify-center bg-muted/30">
-         <div className="text-center">
-           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
-           <p className="text-foreground font-medium text-lg mb-2">Loading Canvas Editor</p>
-           <p className="text-muted-foreground text-sm animate-pulse">{loadingStep}</p>
-         </div>
-       </div>
-     );
-   }
+  // Handle asset dropped onto canvas
+  const handleAssetDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingAsset(false);
+
+    if (!fabricCanvasRef.current || !fabricRef.current) return;
+
+    try {
+      // Get asset data from drag event
+      const assetData = e.dataTransfer.getData('application/json');
+      if (!assetData) return;
+
+      const asset: Asset = JSON.parse(assetData);
+
+      // Only handle images in the image studio
+      if (asset.type === 'image') {
+        fabricRef.current.Image.fromURL(asset.url).then((img) => {
+          if (!fabricCanvasRef.current) return;
+
+          // Get canvas bounds
+          const canvasElement = fabricCanvasRef.current.getElement();
+          const rect = canvasElement.getBoundingClientRect();
+
+          // Calculate drop position relative to canvas
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+
+          // Scale image to fit canvas if too large
+          const maxWidth = 400;
+          const maxHeight = 400;
+          const scale = Math.min(
+            maxWidth / (img.width || 1),
+            maxHeight / (img.height || 1),
+            1 // Don't scale up, only down
+          );
+
+          img.scale(scale);
+          img.set({
+            left: x - (img.width! * scale) / 2,
+            top: y - (img.height! * scale) / 2,
+          });
+
+          fabricCanvasRef.current.add(img);
+          fabricCanvasRef.current.setActiveObject(img);
+          fabricCanvasRef.current.renderAll();
+        }).catch((error) => {
+          console.error('Failed to load asset image:', error);
+          alert('Failed to load asset. Please try again.');
+        });
+      }
+    } catch (error) {
+      console.error('Error handling asset drop:', error);
+    }
+  };
+
+  const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingAsset(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDraggingAsset(false);
+  };
+
 
   return (
-    <div className="flex h-full relative">
-      {/* AI Generator Sidebar */}
+    <div className="flex h-full min-h-screen relative">
+      {isLoading && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
+            <p className="text-foreground font-medium text-lg mb-2">Loading Canvas Editor</p>
+            <p className="text-muted-foreground text-sm animate-pulse">{loadingStep}</p>
+          </div>
+        </div>
+      )}
+      
+      {/* Project List Sidebar */}
       <div 
         className={`transition-all duration-300 border-r border-border bg-card ${
-          showAIPanel ? 'w-96' : 'w-0'
+          showProjectList ? 'w-80' : 'w-0'
         } overflow-hidden`}
       >
-        <div className="w-96 h-full overflow-y-auto p-4">
-          <AIGeneratorPanel type="image" onGenerate={handleAIGenerate} />
+        <div className="w-80 h-full">
+          <ProjectList type="image" />
         </div>
       </div>
 
-      {/* Toggle AI Panel Button */}
+      {/* Toggle Project List Button */}
       <button
-        onClick={() => setShowAIPanel(!showAIPanel)}
-        className="absolute left-0 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-2 rounded-r-md shadow-lg hover:bg-primary/90 transition-all z-10"
-        style={{ left: showAIPanel ? '24rem' : '0' }}
+        onClick={() => setShowProjectList(!showProjectList)}
+        className="absolute left-0 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-2 rounded-r-md shadow-lg hover:bg-primary/90 transition-all z-20"
+        style={{ left: showProjectList ? '20rem' : '0' }}
       >
-        {showAIPanel ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+        {showProjectList ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
       </button>
+      
+      <div className="flex-1 flex h-full relative">
+        {/* AI Generator Sidebar */}
+        <div 
+          className={`transition-all duration-300 border-r border-border bg-card ${
+            showAIPanel ? 'w-96' : 'w-0'
+          } overflow-hidden`}
+        >
+          <div className="w-96 h-full overflow-y-auto p-4">
+            <AIGeneratorPanel type="image" onGenerate={handleAIGenerate} />
+          </div>
+        </div>
 
-      {/* Main Editor Area */}
-      <div className="flex-1 flex flex-col">
+        {/* Toggle AI Panel Button */}
+        <button
+          onClick={() => setShowAIPanel(!showAIPanel)}
+          className="absolute left-0 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-2 rounded-r-md shadow-lg hover:bg-primary/90 transition-all z-10"
+          style={{ left: showAIPanel ? '24rem' : '0' }}
+        >
+          {showAIPanel ? <ChevronLeft size={20} /> : <ChevronRight size={20} />}
+        </button>
+
+        {/* Main Editor Area */}
+        <div className="flex-1 flex flex-col relative">
         {/* Toolbar */}
         <div className="bg-card border-b border-border p-4">
         <div className="flex flex-wrap items-center gap-4">
@@ -451,16 +567,55 @@ export function ImageStudio() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 flex items-center justify-center bg-muted/30 p-8 overflow-auto">
-          <canvas ref={canvasRef} className="border border-border shadow-lg bg-white" />
+        <div 
+          className="flex-1 flex items-center justify-center bg-muted/30 p-8 overflow-auto relative"
+          onDrop={handleAssetDrop}
+          onDragOver={handleDragOver}
+          onDragLeave={handleDragLeave}
+        >
+          {isDraggingAsset && (
+            <div className="absolute inset-0 z-10 bg-primary/10 border-4 border-dashed border-primary flex items-center justify-center pointer-events-none">
+              <div className="bg-primary text-primary-foreground px-6 py-4 rounded-lg shadow-lg">
+                <p className="text-lg font-semibold">Drop asset here</p>
+              </div>
+            </div>
+          )}
+          <canvas 
+            ref={canvasRef}
+            className="border border-border shadow-lg bg-white" 
+          />
         </div>
 
         {/* Instructions */}
         <div className="bg-muted/50 border-t border-border p-4">
           <p className="text-sm text-muted-foreground">
-            💡 <strong className="text-foreground">Tips:</strong> Click elements to select • Drag to move • Use corner handles to resize • Double-click text to edit
+            💡 <strong className="text-foreground">Tips:</strong> Click elements to select • Drag to move • Use corner handles to resize • Double-click text to edit • Drag assets from the sidebar
           </p>
         </div>
+        </div>
+
+        {/* Asset Browser Sidebar */}
+        <div 
+          className={`transition-all duration-300 border-l border-border bg-card ${
+            showAssetBrowser ? 'w-80' : 'w-0'
+          } overflow-hidden`}
+        >
+          <div className="w-80 h-full">
+            <AssetBrowser 
+              workspace="image-studio" 
+              filterType="image"
+            />
+          </div>
+        </div>
+
+        {/* Toggle Asset Browser Button */}
+        <button
+          onClick={() => setShowAssetBrowser(!showAssetBrowser)}
+          className="absolute right-0 top-1/2 -translate-y-1/2 bg-primary text-primary-foreground p-2 rounded-l-md shadow-lg hover:bg-primary/90 transition-all z-10"
+          style={{ right: showAssetBrowser ? '20rem' : '0' }}
+        >
+          {showAssetBrowser ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
       </div>
     </div>
   );

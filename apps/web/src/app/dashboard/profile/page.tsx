@@ -166,6 +166,7 @@ export default function ProfilePage() {
         </div>
         {!isEditing ? (
           <button
+            type="button"
             onClick={() => setIsEditing(true)}
             className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
           >
@@ -175,6 +176,7 @@ export default function ProfilePage() {
         ) : (
           <div className="flex gap-2">
             <button
+              type="button"
               onClick={handleCancel}
               disabled={isSaving}
               className="flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50"
@@ -183,6 +185,7 @@ export default function ProfilePage() {
               <span>Cancel</span>
             </button>
             <button
+              type="button"
               onClick={handleSave}
               disabled={isSaving}
               className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"

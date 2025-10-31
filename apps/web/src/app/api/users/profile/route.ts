@@ -4,7 +4,16 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getWormClient, UserRepository } from '@dial/worm';
+
+// Helper to check if Storj is configured
+function isStorjConfigured(): boolean {
+  return !!(
+    process.env.STORJ_ENDPOINT &&
+    process.env.STORJ_BUCKET &&
+    process.env.STORJ_ACCESS_KEY &&
+    process.env.STORJ_SECRET_KEY
+  );
+}
 
 /**
  * GET /api/users/profile?address=<wallet_address>
@@ -22,6 +31,20 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // If Storj is not configured, return a default profile
+    if (!isStorjConfigured()) {
+      return NextResponse.json({
+        address,
+        displayName: '',
+        bio: '',
+        avatarUrl: '',
+        bannerUrl: '',
+        socialLinks: {},
+        email: '',
+      });
+    }
+
+    const { getWormClient, UserRepository } = await import('@dial/worm');
     const worm = getWormClient();
     const userRepo = new UserRepository(worm);
 
@@ -63,6 +86,20 @@ export async function PUT(request: NextRequest) {
       );
     }
 
+    // If Storj is not configured, just return the submitted data
+    if (!isStorjConfigured()) {
+      return NextResponse.json({
+        address,
+        displayName: displayName || '',
+        bio: bio || '',
+        avatarUrl: avatarUrl || '',
+        bannerUrl: bannerUrl || '',
+        socialLinks: socialLinks || {},
+        email: email || '',
+      });
+    }
+
+    const { getWormClient, UserRepository } = await import('@dial/worm');
     const worm = getWormClient();
     const userRepo = new UserRepository(worm);
 

@@ -15,35 +15,27 @@ export function MintInterface() {
   const bondingCurves: Record<string, BondingCurveConfig> = {
     'dial-tones-1': {
       type: 'linear',
-      parameters: {
-        basePrice: solToLamports(0.5),
-        increment: solToLamports(0.01),
-        maxPrice: solToLamports(5),
-      },
+      basePrice: solToLamports(0.5),
+      priceIncrement: solToLamports(0.01),
+      maxSupply: 100,
     },
     'retro-ringtones': {
       type: 'exponential',
-      parameters: {
-        basePrice: solToLamports(0.8),
-        multiplier: 1.02,
-        maxPrice: solToLamports(10),
-      },
+      basePrice: solToLamports(0.8),
+      priceIncrement: solToLamports(0.05),
+      maxSupply: 50,
     },
     'future-beats': {
       type: 'logarithmic',
-      parameters: {
-        basePrice: solToLamports(0.3),
-        increment: solToLamports(0.05),
-        maxPrice: solToLamports(3),
-      },
+      basePrice: solToLamports(0.3),
+      priceIncrement: solToLamports(0.05),
+      maxSupply: 75,
     },
     'classic-collection': {
       type: 'exponential',
-      parameters: {
-        basePrice: solToLamports(1.0),
-        multiplier: 1.05,
-        maxPrice: solToLamports(20),
-      },
+      basePrice: solToLamports(1.0),
+      priceIncrement: solToLamports(0.1),
+      maxSupply: 200,
     },
   };
 
@@ -82,7 +74,7 @@ export function MintInterface() {
     },
   ].map(pack => {
     const currentPrice = calculatePrice(pack.supply.minted + 1, pack.bondingCurve);
-    const nextPrice = getNextPrice(pack.supply.minted + 1, pack.bondingCurve);
+    const nextPrice = calculatePrice(pack.supply.minted + 2, pack.bondingCurve);
     return {
       ...pack,
       currentPrice: parseFloat(formatLamportsToSOL(currentPrice, 4)),

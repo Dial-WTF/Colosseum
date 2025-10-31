@@ -32,7 +32,21 @@ The package is already installed as a workspace dependency. No additional instal
    - **Secret Access Key**
    - **Endpoint** (usually `https://gateway.storjshare.io`)
 
-### 3. Configure Environment Variables
+### 3. Create Public Link Share (for profile photos)
+
+To allow public access to uploaded profile photos:
+
+1. Navigate to your bucket in the Storj console
+2. Click **Share** → **Create Link Share**
+3. Configure the link share:
+   - **Name**: `public-profile-photos`
+   - **Permissions**: Select "Read only"
+   - **Path**: Leave empty (or specify `users/` to limit access)
+   - **Expiration**: Set to "No expiration"
+4. Click **Create Link Share**
+5. Copy the **Link Sharing URL** (looks like: `https://link.storjshare.io/s/jxxx.../dial-wtf-users`)
+
+### 4. Configure Environment Variables
 
 Add the following to `apps/web/.env.local`:
 
@@ -42,6 +56,9 @@ STORJ_ENDPOINT=https://gateway.storjshare.io
 STORJ_BUCKET=dial-wtf-users
 STORJ_ACCESS_KEY=your_access_key_id_here
 STORJ_SECRET_KEY=your_secret_access_key_here
+
+# Public URL for accessing uploaded files (get this from Storj link share)
+STORJ_PUBLIC_URL=https://link.storjshare.io/s/your-share-url/dial-wtf-users
 
 # For client-side Storj usage (if needed)
 NEXT_PUBLIC_STORJ_ENDPOINT=https://gateway.storjshare.io

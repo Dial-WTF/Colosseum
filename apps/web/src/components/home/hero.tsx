@@ -27,46 +27,62 @@ export function Hero() {
     const drawGrid = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-      // Create gradient background
-      const gradient = ctx.createLinearGradient(0, 0, canvas.width, canvas.height);
-      gradient.addColorStop(0, 'rgba(138, 43, 226, 0.1)');
-      gradient.addColorStop(0.5, 'rgba(255, 20, 147, 0.1)');
-      gradient.addColorStop(1, 'rgba(0, 191, 255, 0.1)');
+      // Create enhanced gradient background
+      const gradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
+      gradient.addColorStop(0, 'rgba(138, 43, 226, 0.15)');
+      gradient.addColorStop(0.5, 'rgba(255, 20, 147, 0.15)');
+      gradient.addColorStop(1, 'rgba(0, 191, 255, 0.15)');
       ctx.fillStyle = gradient;
       ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-      // Draw perspective grid
-      ctx.strokeStyle = 'rgba(255, 20, 147, 0.3)';
-      ctx.lineWidth = 2;
-
+      // Enhanced perspective grid with better 3D effect
       const gridSize = 50;
-      const perspective = 300;
-
-      // Vertical lines
-      for (let x = -canvas.width; x < canvas.width * 2; x += gridSize) {
-        const startX = x;
-        const endX = canvas.width / 2 + (x - canvas.width / 2) * 2;
-        const startY = canvas.height / 2 + offset;
-        const endY = canvas.height + 200;
-
-        ctx.beginPath();
-        ctx.moveTo(startX, startY);
-        ctx.lineTo(endX, endY);
-        ctx.stroke();
-      }
-
-      // Horizontal lines
+      const horizon = canvas.height / 2;
+      const vanishingPointY = horizon + offset;
+      
+      // Draw horizontal lines (with proper perspective)
       for (let y = 0; y < 20; y++) {
-        const yPos = canvas.height / 2 + offset + (y * gridSize);
-        const scale = (y + 10) / 10;
+        const yPos = vanishingPointY + (y * gridSize);
+        
+        // Skip if line is above horizon
+        if (yPos < horizon) continue;
+        
+        // Calculate perspective scale based on distance from horizon
+        const distanceFromHorizon = yPos - horizon;
+        const scale = Math.min(distanceFromHorizon / 200, 3);
         const lineWidth = canvas.width * scale;
-
+        
+        // Fade lines based on distance
+        const alpha = Math.max(0.2, Math.min(0.6, 1 - (y / 25)));
+        ctx.strokeStyle = `rgba(255, 20, 147, ${alpha})`;
+        ctx.lineWidth = Math.max(1, 3 - y * 0.1);
+        
         ctx.beginPath();
-        ctx.moveTo(canvas.width / 2 - lineWidth / 2, yPos);
-        ctx.lineTo(canvas.width / 2 + lineWidth / 2, yPos);
+        ctx.moveTo(Math.max(0, canvas.width / 2 - lineWidth / 2), yPos);
+        ctx.lineTo(Math.min(canvas.width, canvas.width / 2 + lineWidth / 2), yPos);
         ctx.stroke();
       }
 
+      // Draw vertical lines (converging to center)
+      const numVerticalLines = 20;
+      for (let i = -numVerticalLines; i <= numVerticalLines; i++) {
+        if (i === 0) continue; // Skip center line
+        
+        const xOffset = i * (canvas.width / numVerticalLines / 2);
+        const startX = canvas.width / 2 + xOffset;
+        const endX = canvas.width / 2 + (xOffset * 3);
+        
+        const alpha = Math.max(0.2, Math.min(0.5, 1 - Math.abs(i) / numVerticalLines));
+        ctx.strokeStyle = `rgba(255, 20, 147, ${alpha})`;
+        ctx.lineWidth = 2;
+        
+        ctx.beginPath();
+        ctx.moveTo(startX, vanishingPointY);
+        ctx.lineTo(endX, canvas.height + 100);
+        ctx.stroke();
+      }
+
+      // Animate the offset
       offset += 2;
       if (offset > gridSize) {
         offset = 0;
@@ -84,11 +100,11 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative min-h-screen overflow-hidden">
+    <section className="relative min-h-screen">
       {/* Vaporwave Grid Background */}
       <canvas
         ref={canvasRef}
-        className="absolute inset-0 w-full h-full"
+        className="fixed inset-0 w-full h-full -z-10"
         style={{ background: 'radial-gradient(circle at center, #0a0a0a 0%, #1a0a2e 100%)' }}
       />
 
@@ -107,8 +123,13 @@ export function Hero() {
               MINT CUSTOM <span className="text-pink-500 animate-bounce inline-block">RINGTONES</span> 📱
             </h1>
 
-            <p className="text-2xl md:text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500">
-              STICKERS 🎨 • NFT PACKS 🎁 • MAKE BANK 💰
+            <p className="text-2xl md:text-4xl font-bold">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500">STICKERS</span>{' '}
+              <span className="text-4xl">🎨</span>{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500">• NFT PACKS</span>{' '}
+              <span className="text-4xl">🎁</span>{' '}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 via-pink-500 to-purple-500">• MAKE BANK</span>{' '}
+              <span className="text-4xl">💰</span>
             </p>
 
             <div className="text-xl md:text-2xl text-cyan-400 font-semibold space-y-2">

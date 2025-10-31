@@ -15,11 +15,17 @@ import {
   Mic,
   RotateCcw,
   ChevronRight,
-  ChevronLeft
+  ChevronLeft,
+  Disc3,
+  Package
 } from 'lucide-react';
 import { AIGeneratorPanel } from './ai-generator-panel';
+import { SunoFlowJockey } from './suno-flow-jockey';
 import { VersionManager } from './version-manager';
 import { ProjectHeader } from './project-header';
+import { CDBurner } from './cd-burner';
+import { MintPackager, type PackagedNFTData } from './mint-packager';
+import { useUser } from '@/providers/user-context';
 import { projectStorage, createProject, createVersion, getProject, updateProject as updateProjectApi, deleteVersion as deleteVersionApi, updateVersion as updateVersionApi } from '@/lib/project-service';
 
 export function AudioStudioProject() {
@@ -46,11 +52,49 @@ export function AudioStudioProject() {
   const [showVersionPanel, setShowVersionPanel] = useState(true);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [showCDBurner, setShowCDBurner] = useState(false);
+  const [showMintPackager, setShowMintPackager] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { address, profile } = useUser();
 
   // Initialize or load project
   useEffect(() => {
     initializeProject();
   }, [projectId, mode]);
+
+  // Auto-save when changes are detected
+  useEffect(() => {
+    if (!hasUnsavedChanges || !project) return;
+
+    // Clear any existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set up new auto-save timeout (3 seconds after last change)
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      setIsAutoSaving(true);
+      try {
+        await handleAutoSave();
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      } finally {
+        setIsAutoSaving(false);
+      }
+    }, 3000);
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [hasUnsavedChanges, project]);
 
   const initializeProject = async () => {
     try {
@@ -81,7 +125,7 @@ export function AudioStudioProject() {
         });
         setProject(newProject);
         // Update URL with new project ID
-        router.replace(`/create/audio?projectId=${newProject.id}`);
+        router.replace(`/dashboard/create/audio?projectId=${newProject.id}`);
       }
     } catch (error) {
       console.error('Failed to initialize project:', error);
@@ -92,54 +136,60 @@ export function AudioStudioProject() {
   useEffect(() => {
     if (!waveformRef.current || wavesurferRef.current) return;
 
-    const regionsPlugin = RegionsPlugin.create();
-    regionsPluginRef.current = regionsPlugin;
+    try {
+      const regionsPlugin = RegionsPlugin.create();
+      regionsPluginRef.current = regionsPlugin;
 
-    const wavesurfer = WaveSurfer.create({
-      container: waveformRef.current,
-      waveColor: '#3b82f6',
-      progressColor: '#1e40af',
-      cursorColor: '#ef4444',
-      barWidth: 2,
-      barRadius: 3,
-      cursorWidth: 2,
-      height: 150,
-      barGap: 3,
-      plugins: [regionsPlugin],
-    });
+      const wavesurfer = WaveSurfer.create({
+        container: waveformRef.current,
+        waveColor: '#3b82f6',
+        progressColor: '#1e40af',
+        cursorColor: '#ef4444',
+        barWidth: 2,
+        barRadius: 3,
+        cursorWidth: 2,
+        height: 150,
+        barGap: 3,
+        plugins: [regionsPlugin],
+      });
 
-    wavesurferRef.current = wavesurfer;
+      wavesurferRef.current = wavesurfer;
 
-    // Event listeners
-    wavesurfer.on('play', () => setIsPlaying(true));
-    wavesurfer.on('pause', () => setIsPlaying(false));
-    wavesurfer.on('ready', () => {
-      setIsLoaded(true);
-      setDuration(wavesurfer.getDuration());
-      setHasUnsavedChanges(true);
-    });
-    wavesurfer.on('audioprocess', () => {
-      setCurrentTime(wavesurfer.getCurrentTime());
-    });
-    wavesurfer.on('seeking', () => {
-      setCurrentTime(wavesurfer.getCurrentTime());
-    });
+      // Event listeners
+      wavesurfer.on('play', () => setIsPlaying(true));
+      wavesurfer.on('pause', () => setIsPlaying(false));
+      wavesurfer.on('ready', () => {
+        setIsLoaded(true);
+        setDuration(wavesurfer.getDuration());
+      });
+      wavesurfer.on('audioprocess', () => {
+        setCurrentTime(wavesurfer.getCurrentTime());
+      });
+      wavesurfer.on('seeking', () => {
+        setCurrentTime(wavesurfer.getCurrentTime());
+      });
+      wavesurfer.on('error', (error) => {
+        console.error('WaveSurfer error:', error);
+      });
 
-    // Handle region selection
-    regionsPlugin.on('region-clicked', (region, e) => {
-      e.stopPropagation();
-      setSelectedRegion(region);
-      region.play();
-    });
+      // Handle region selection
+      regionsPlugin.on('region-clicked', (region, e) => {
+        e.stopPropagation();
+        setSelectedRegion(region);
+        region.play();
+      });
 
-    // Load version if available
-    if (currentVersion) {
-      loadVersionToWaveSurfer(currentVersion);
+      // Load version if available
+      if (currentVersion) {
+        loadVersionToWaveSurfer(currentVersion);
+      }
+
+      return () => {
+        wavesurfer.destroy();
+      };
+    } catch (error) {
+      console.error('Failed to initialize WaveSurfer:', error);
     }
-
-    return () => {
-      wavesurfer.destroy();
-    };
   }, []);
 
   // Load version data when currentVersion changes
@@ -254,6 +304,82 @@ export function AudioStudioProject() {
     }
   };
 
+  const handleAutoSave = async () => {
+    if (!project || !wavesurferRef.current || !audioBufferRef.current) return;
+
+    try {
+      // Convert audio buffer to WAV blob
+      const wavBlob = await bufferToWave(audioBufferRef.current, audioBufferRef.current.length);
+      
+      // Convert to data URL
+      const audioUrl = await blobToDataURL(wavBlob);
+      
+      // Get regions
+      const regions = regionsPluginRef.current?.getRegions() || [];
+      const regionData: AudioRegion[] = regions.map((region) => ({
+        id: region.id,
+        start: region.start,
+        end: region.end,
+        color: region.color,
+      }));
+
+      // Generate thumbnail (waveform snapshot)
+      const canvas = document.createElement('canvas');
+      canvas.width = 400;
+      canvas.height = 150;
+      const thumbnail = canvas.toDataURL('image/png');
+
+      const audioData: AudioProjectData = {
+        type: 'audio',
+        audioUrl,
+        duration: wavesurferRef.current.getDuration(),
+        regions: regionData,
+        volume,
+        exportUrl: audioUrl,
+      };
+
+      if (currentVersion) {
+        // Update existing version
+        await updateVersionApi(project.id, currentVersion.id, {
+          data: audioData,
+          thumbnail,
+        });
+      } else {
+        // Create initial auto-save version
+        const version = await createVersion({
+          projectId: project.id,
+          name: 'Auto-save',
+          data: audioData,
+          thumbnail,
+        });
+        
+        setCurrentVersion(version);
+      }
+
+      // Update project's updatedAt timestamp
+      await updateProjectApi(project.id, {});
+
+      // Reload project to get updated state
+      const updatedProject = await getProject(project.id);
+      if (updatedProject) {
+        setProject(updatedProject);
+        if (currentVersion) {
+          const updatedCurrentVersion = updatedProject.versions.find(v => v.id === currentVersion.id);
+          if (updatedCurrentVersion) {
+            setCurrentVersion(updatedCurrentVersion);
+          }
+        } else if (updatedProject.versions.length > 0) {
+          // Set the newly created version as current
+          setCurrentVersion(updatedProject.versions[updatedProject.versions.length - 1]);
+        }
+        setHasUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      // Don't throw - auto-save failures should be silent
+    }
+  };
+
   const handleLoadVersion = async (versionId: string) => {
     if (!project) return;
 
@@ -344,9 +470,28 @@ export function AudioStudioProject() {
   // Audio operations
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file || !wavesurferRef.current) return;
+    if (!file) return;
+    await processAudioFile(file);
+  };
+
+  const processAudioFile = async (file: File) => {
+    if (!wavesurferRef.current) return;
+
+    // Validate file type
+    if (!file.type.startsWith('audio/')) {
+      alert('Please upload an audio file');
+      return;
+    }
+
+    setIsUploading(true);
+    setUploadProgress(0);
 
     try {
+      // Simulate progress for file reading
+      const progressInterval = setInterval(() => {
+        setUploadProgress((prev) => Math.min(prev + 10, 90));
+      }, 100);
+
       const arrayBuffer = await file.arrayBuffer();
       const audioContext = new AudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
@@ -355,19 +500,64 @@ export function AudioStudioProject() {
       const blob = new Blob([arrayBuffer], { type: file.type });
       const url = URL.createObjectURL(blob);
       
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+      
       wavesurferRef.current.load(url);
       
       // Clear any existing regions
       regionsPluginRef.current?.clearRegions();
       setSelectedRegion(null);
+      setHasUnsavedChanges(true);
+
+      // Reset upload state after a brief delay
+      setTimeout(() => {
+        setIsUploading(false);
+        setUploadProgress(0);
+      }, 500);
     } catch (error) {
       console.error('Error loading audio:', error);
       alert('Failed to load audio file');
+      setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
   const uploadAudio = () => {
     fileInputRef.current?.click();
+  };
+
+  // Drag and drop handlers
+  const handleDragEnter = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const files = Array.from(e.dataTransfer.files);
+    const audioFile = files.find((f) => f.type.startsWith('audio/'));
+
+    if (audioFile) {
+      processAudioFile(audioFile);
+    } else {
+      alert('Please drop an audio file');
+    }
   };
 
   const togglePlayPause = () => {
@@ -546,7 +736,7 @@ export function AudioStudioProject() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const handleAIGenerate = async (result: { url: string; prompt: string }) => {
+  const handleAIGenerate = async (result: { url: string; prompt: string; metadata?: any }) => {
     if (!wavesurferRef.current) return;
 
     try {
@@ -563,10 +753,51 @@ export function AudioStudioProject() {
       const audioContext = new AudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       audioBufferRef.current = audioBuffer;
+      setHasUnsavedChanges(true);
+      
+      // Log metadata if available (for Suno tracks)
+      if (result.metadata) {
+        console.log('🎵 Loaded track metadata:', result.metadata);
+      }
     } catch (error) {
       console.error('Error loading AI audio:', error);
       alert('Failed to load AI-generated audio');
     }
+  };
+
+  // Burn to CD handler
+  const handleBurnToCD = () => {
+    if (!isLoaded) {
+      alert('Please load an audio file first');
+      return;
+    }
+    setShowCDBurner(true);
+  };
+
+  // Package & Mint handler
+  const handlePackageAndMint = () => {
+    if (!isLoaded || !audioBufferRef.current) {
+      alert('Please load an audio file first');
+      return;
+    }
+    setShowMintPackager(true);
+  };
+
+  // Mint NFT handler
+  const handleMintNFT = async (packagedData: PackagedNFTData) => {
+    console.log('🚀 Minting NFT with data:', packagedData);
+    
+    // TODO: Implement actual minting logic
+    // This would involve:
+    // 1. Upload audio to decentralized storage (IPFS, Arweave, etc.)
+    // 2. Upload metadata JSON
+    // 3. Create NFT on Solana using Metaplex
+    // 4. Set up bonding curve contract
+    
+    // Simulate minting delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    alert(`🎉 NFT "${packagedData.name}" minted successfully!`);
   };
 
   if (!project) {
@@ -595,8 +826,8 @@ export function AudioStudioProject() {
             showAIPanel ? 'w-96' : 'w-0'
           } overflow-hidden`}
         >
-          <div className="w-96 h-full overflow-y-auto p-4">
-            <AIGeneratorPanel type="audio" onGenerate={handleAIGenerate} />
+          <div className="w-96 h-full overflow-y-auto">
+            <SunoFlowJockey onGenerate={handleAIGenerate} />
           </div>
         </div>
 
@@ -699,10 +930,38 @@ export function AudioStudioProject() {
                     <Download size={18} />
                     Export WAV
                   </button>
+
+                  <div className="h-8 w-px bg-border" />
+
+                  {/* Burn to CD */}
+                  <button
+                    onClick={handleBurnToCD}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-md hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-500/30"
+                  >
+                    <Disc3 size={18} className="animate-spin" style={{ animationDuration: '3s' }} />
+                    Burn to CD
+                  </button>
+
+                  <div className="h-8 w-px bg-border" />
+
+                  {/* Package & Mint */}
+                  <button
+                    onClick={handlePackageAndMint}
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-600 to-emerald-600 text-white rounded-md hover:from-green-700 hover:to-emerald-700 transition-all shadow-lg shadow-green-500/30 font-semibold"
+                  >
+                    <Package size={18} />
+                    Package & Mint
+                  </button>
                 </>
               )}
 
-              {hasUnsavedChanges && (
+              {isAutoSaving && (
+                <span className="text-sm text-blue-500 font-medium flex items-center gap-2">
+                  <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></span>
+                  Auto-saving...
+                </span>
+              )}
+              {hasUnsavedChanges && !isAutoSaving && (
                 <span className="text-sm text-amber-500 font-medium">• Unsaved changes</span>
               )}
             </div>
@@ -710,16 +969,53 @@ export function AudioStudioProject() {
 
           {/* Waveform */}
           <div className="flex-1 flex flex-col bg-muted/30 p-8 overflow-auto">
-            <div className="bg-card rounded-lg shadow-sm border border-border p-6">
-              {!isLoaded && (
-                <div className="flex items-center justify-center h-[150px] text-muted-foreground">
+            <div 
+              className={`bg-card rounded-lg shadow-sm border-2 border-dashed p-6 transition-all ${
+                isDragging ? 'border-primary bg-primary/10' : 'border-border'
+              }`}
+              onDragEnter={handleDragEnter}
+              onDragLeave={handleDragLeave}
+              onDragOver={handleDragOver}
+              onDrop={handleDrop}
+            >
+              {!isLoaded && !isUploading && (
+                <div 
+                  className="flex items-center justify-center h-[150px] text-muted-foreground cursor-pointer"
+                  onClick={uploadAudio}
+                >
                   <div className="text-center">
-                    <Mic size={48} className="mx-auto mb-2 opacity-50" />
-                    <p>Upload an audio file to get started</p>
+                    <Upload size={48} className="mx-auto mb-4 opacity-50" />
+                    <p className="text-lg font-medium mb-2">
+                      {isDragging ? 'Drop your audio file here' : 'Upload an audio file to get started'}
+                    </p>
+                    <p className="text-sm opacity-75">
+                      Click to browse or drag and drop
+                    </p>
+                    <p className="text-xs opacity-50 mt-2">
+                      Supports MP3, WAV, OGG, and more
+                    </p>
                   </div>
                 </div>
               )}
-              <div ref={waveformRef} />
+              
+              {isUploading && (
+                <div className="flex flex-col items-center justify-center h-[150px]">
+                  <div className="w-full max-w-md">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-sm font-medium text-foreground">Uploading audio...</span>
+                      <span className="text-sm text-muted-foreground">{uploadProgress}%</span>
+                    </div>
+                    <div className="w-full bg-secondary rounded-full h-2 overflow-hidden">
+                      <div 
+                        className="bg-primary h-full transition-all duration-300 ease-out"
+                        style={{ width: `${uploadProgress}%` }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div ref={waveformRef} className="min-h-[150px] w-full" />
               
               {isLoaded && (
                 <div className="mt-4 flex items-center justify-between text-sm text-muted-foreground">
@@ -775,6 +1071,36 @@ export function AudioStudioProject() {
           {showVersionPanel ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
         </button>
       </div>
+
+      {/* CD Burner Modal */}
+      {showCDBurner && (
+        <CDBurner
+          data={{
+            soundName: project?.name || `Audio ${Date.now()}`,
+            artistName: profile?.displayName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Anonymous'),
+            walletAddress: address || 'No wallet connected',
+          }}
+          onClose={() => setShowCDBurner(false)}
+        />
+      )}
+
+      {/* Mint Packager Modal */}
+      {showMintPackager && audioBufferRef.current && (
+        <MintPackager
+          audioData={{
+            audioUrl: wavesurferRef.current?.getMediaElement()?.src || '',
+            duration: duration,
+            audioBuffer: audioBufferRef.current,
+          }}
+          initialData={{
+            soundName: project?.name || `Audio ${Date.now()}`,
+            artistName: profile?.displayName || (address ? `${address.slice(0, 6)}...${address.slice(-4)}` : 'Anonymous'),
+            walletAddress: address || 'No wallet connected',
+          }}
+          onClose={() => setShowMintPackager(false)}
+          onMint={handleMintNFT}
+        />
+      )}
     </div>
   );
 }

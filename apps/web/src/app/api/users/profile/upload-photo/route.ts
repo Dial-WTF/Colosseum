@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getWormClient } from '@dial/worm';
+import { getWormClient, getPublicUrl } from '@dial/worm';
 
 /**
  * POST /api/users/profile/upload-photo
@@ -69,8 +69,8 @@ export async function POST(request: NextRequest) {
     const worm = getWormClient();
     await worm.putBytes(filename, buffer, file.type);
 
-    // Generate public URL (adjust based on your Storj configuration)
-    const publicUrl = `${process.env.STORJ_PUBLIC_URL || ''}/${filename}`;
+    // Generate public URL
+    const publicUrl = getPublicUrl(filename);
 
     return NextResponse.json({
       url: publicUrl,

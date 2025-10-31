@@ -34,6 +34,7 @@ export function ImageStudioProject() {
   const fabricCanvasRef = useRef<Canvas | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const fabricRef = useRef<typeof import('fabric') | null>(null);
+  const isInitializing = useRef(false);
   
   const [project, setProject] = useState<Project | null>(null);
   const [currentVersion, setCurrentVersion] = useState<ProjectVersion | null>(null);
@@ -47,11 +48,42 @@ export function ImageStudioProject() {
   const [isSaving, setIsSaving] = useState(false);
   const [loadingStep, setLoadingStep] = useState('Initializing canvas editor...');
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isAutoSaving, setIsAutoSaving] = useState(false);
+  const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // Initialize or load project
   useEffect(() => {
     initializeProject();
   }, [projectId, mode]);
+
+  // Auto-save when changes are detected
+  useEffect(() => {
+    if (!hasUnsavedChanges || !project) return;
+
+    // Clear any existing timeout
+    if (autoSaveTimeoutRef.current) {
+      clearTimeout(autoSaveTimeoutRef.current);
+    }
+
+    // Set up new auto-save timeout (3 seconds after last change)
+    autoSaveTimeoutRef.current = setTimeout(async () => {
+      setIsAutoSaving(true);
+      try {
+        await handleAutoSave();
+      } catch (error) {
+        console.error('Auto-save failed:', error);
+      } finally {
+        setIsAutoSaving(false);
+      }
+    }, 3000);
+
+    // Cleanup on unmount
+    return () => {
+      if (autoSaveTimeoutRef.current) {
+        clearTimeout(autoSaveTimeoutRef.current);
+      }
+    };
+  }, [hasUnsavedChanges, project]);
 
   const initializeProject = async () => {
     try {
@@ -82,7 +114,7 @@ export function ImageStudioProject() {
         });
         setProject(newProject);
         // Update URL with new project ID
-        router.replace(`/create/image?projectId=${newProject.id}`);
+        router.replace(`/dashboard/create/image?projectId=${newProject.id}`);
       }
     } catch (error) {
       console.error('Failed to initialize project:', error);
@@ -91,9 +123,18 @@ export function ImageStudioProject() {
 
   // Initialize canvas
   useEffect(() => {
-    if (!canvasRef.current || fabricCanvasRef.current) return;
+    // Skip if already initialized
+    if (fabricCanvasRef.current || isInitializing.current) {
+      return;
+    }
+
+    // Wait for canvas to be mounted
+    if (!canvasRef.current) {
+      return;
+    }
 
     let mounted = true;
+    isInitializing.current = true;
 
     const initCanvas = async () => {
       try {
@@ -101,15 +142,10 @@ export function ImageStudioProject() {
         
         const fabricModule = await import('fabric');
         
-        if (!mounted) return;
-        setLoadingStep('Setting up canvas renderer...');
+        if (!mounted || !canvasRef.current) return;
         
+        setLoadingStep('Setting up canvas renderer...');
         fabricRef.current = fabricModule;
-
-        if (!canvasRef.current) {
-          setIsLoading(false);
-          return;
-        }
 
         setLoadingStep('Initializing drawing surface...');
         
@@ -155,7 +191,7 @@ export function ImageStudioProject() {
         }, 300);
       } catch (error) {
         console.error('Failed to load fabric.js:', error);
-        setLoadingStep('Error loading editor');
+        setLoadingStep('Error loading editor - please refresh');
         setTimeout(() => {
           if (mounted) {
             setIsLoading(false);
@@ -168,8 +204,10 @@ export function ImageStudioProject() {
 
     return () => {
       mounted = false;
+      isInitializing.current = false;
       if (fabricCanvasRef.current) {
         fabricCanvasRef.current.dispose();
+        fabricCanvasRef.current = null;
       }
     };
   }, []);
@@ -228,6 +266,7 @@ export function ImageStudioProject() {
       const exportUrl = fabricCanvasRef.current.toDataURL({
         format: 'png',
         quality: 1,
+        multiplier: 1,
       });
 
       const imageData: ImageProjectData = {
@@ -259,6 +298,78 @@ export function ImageStudioProject() {
       throw error;
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleAutoSave = async () => {
+    if (!project || !fabricCanvasRef.current) return;
+
+    try {
+      // Get canvas state
+      const canvasState = JSON.stringify(fabricCanvasRef.current.toJSON());
+      
+      // Generate thumbnail
+      const thumbnail = fabricCanvasRef.current.toDataURL({
+        format: 'png',
+        quality: 0.8,
+        multiplier: 0.3,
+      });
+
+      // Generate export URL
+      const exportUrl = fabricCanvasRef.current.toDataURL({
+        format: 'png',
+        quality: 1,
+        multiplier: 1,
+      });
+
+      const imageData: ImageProjectData = {
+        type: 'image',
+        canvasState,
+        width: fabricCanvasRef.current.width || 800,
+        height: fabricCanvasRef.current.height || 600,
+        backgroundColor,
+        exportUrl,
+      };
+
+      if (currentVersion) {
+        // Update existing version
+        await updateVersionApi(project.id, currentVersion.id, {
+          data: imageData,
+          thumbnail,
+        });
+      } else {
+        // Create initial auto-save version
+        const version = await createVersion({
+          projectId: project.id,
+          name: 'Auto-save',
+          data: imageData,
+          thumbnail,
+        });
+        
+        setCurrentVersion(version);
+      }
+
+      // Update project's updatedAt timestamp
+      await updateProjectApi(project.id, {});
+
+      // Reload project to get updated state
+      const updatedProject = await getProject(project.id);
+      if (updatedProject) {
+        setProject(updatedProject);
+        if (currentVersion) {
+          const updatedCurrentVersion = updatedProject.versions.find(v => v.id === currentVersion.id);
+          if (updatedCurrentVersion) {
+            setCurrentVersion(updatedCurrentVersion);
+          }
+        } else if (updatedProject.versions.length > 0) {
+          // Set the newly created version as current
+          setCurrentVersion(updatedProject.versions[updatedProject.versions.length - 1]);
+        }
+        setHasUnsavedChanges(false);
+      }
+    } catch (error) {
+      console.error('Auto-save failed:', error);
+      // Don't throw - auto-save failures should be silent
     }
   };
 
@@ -378,7 +489,9 @@ export function ImageStudioProject() {
     reader.onload = (event) => {
       const imgUrl = event.target?.result as string;
       
-      fabricRef.current!.Image.fromURL(imgUrl, (img) => {
+      fabricRef.current!.Image.fromURL(imgUrl).then((img) => {
+        if (!fabricCanvasRef.current) return;
+        
         const scale = Math.min(
           400 / (img.width || 1),
           400 / (img.height || 1)
@@ -390,13 +503,26 @@ export function ImageStudioProject() {
           top: 100,
         });
 
-        fabricCanvasRef.current?.add(img);
-        fabricCanvasRef.current?.setActiveObject(img);
-        fabricCanvasRef.current?.renderAll();
+        fabricCanvasRef.current.add(img);
+        fabricCanvasRef.current.setActiveObject(img);
+        fabricCanvasRef.current.renderAll();
+      }).catch((error) => {
+        console.error('Failed to load image:', error);
+        alert('Failed to load image. Please try again.');
       });
     };
     
+    reader.onerror = () => {
+      console.error('Failed to read file');
+      alert('Failed to read file. Please try again.');
+    };
+    
     reader.readAsDataURL(file);
+    
+    // Reset file input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   };
 
   const deleteSelected = () => {
@@ -461,6 +587,7 @@ export function ImageStudioProject() {
     const dataURL = fabricCanvasRef.current.toDataURL({
       format: 'png',
       quality: 1,
+      multiplier: 1,
     });
 
     const link = document.createElement('a');
@@ -472,7 +599,7 @@ export function ImageStudioProject() {
   const handleAIGenerate = (result: { url: string; prompt: string }) => {
     if (!fabricCanvasRef.current || !fabricRef.current) return;
 
-    fabricRef.current.Image.fromURL(result.url, (img) => {
+    fabricRef.current.Image.fromURL(result.url).then((img) => {
       const scale = Math.min(
         600 / (img.width || 1),
         450 / (img.height || 1)
@@ -684,7 +811,13 @@ export function ImageStudioProject() {
                 </button>
               </div>
 
-              {hasUnsavedChanges && (
+              {isAutoSaving && (
+                <span className="text-sm text-blue-500 font-medium flex items-center gap-2">
+                  <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-blue-500"></span>
+                  Auto-saving...
+                </span>
+              )}
+              {hasUnsavedChanges && !isAutoSaving && (
                 <span className="text-sm text-amber-500 font-medium">• Unsaved changes</span>
               )}
             </div>
@@ -692,7 +825,10 @@ export function ImageStudioProject() {
 
           {/* Canvas Area */}
           <div className="flex-1 flex items-center justify-center bg-muted/30 p-8 overflow-auto">
-            <canvas ref={canvasRef} className="border border-border shadow-lg bg-white" />
+            <canvas 
+              ref={canvasRef}
+              className="border border-border shadow-lg bg-white" 
+            />
           </div>
 
           {/* Instructions */}

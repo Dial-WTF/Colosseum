@@ -8,6 +8,7 @@
     "type-check": "tsc --noEmit"
   },
   "dependencies": {
+    "bezier-js": "^6.1.4",
     "decimal.js": "^10.6.0"
   },
   "devDependencies": {
@@ -15,4 +16,3 @@
     "typescript": "^5.6.3"
   }
 }
-

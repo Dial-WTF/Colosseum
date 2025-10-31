@@ -4,8 +4,9 @@ import { useState } from 'react';
 import * as Slider from '@radix-ui/react-slider';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { BondingCurveConfig } from '@dial/bonding-curve';
-import { solToLamports } from '@dial/bonding-curve';
-import { TrendingUp, TrendingDown, Activity } from 'lucide-react';
+import { solToLamports, createDefaultBezierCurve } from '@dial/bonding-curve';
+import { TrendingUp, TrendingDown, Activity, Sparkles } from 'lucide-react';
+import { BezierCurveEditor } from '~/mint/bezier-curve-editor';
 
 interface BondingCurveEditorProps {
   config: BondingCurveConfig;
@@ -28,10 +29,21 @@ export function BondingCurveEditor({ config, onChange, className = '' }: Bonding
 
   const handleTypeChange = (type: BondingCurveConfig['type']) => {
     setCurveType(type);
-    onChange({
+    
+    // If switching to bezier, create default curve data
+    const newConfig: BondingCurveConfig = {
       ...config,
       type,
-    });
+    };
+    
+    if (type === 'bezier' && !config.bezierCurve) {
+      newConfig.bezierCurve = createDefaultBezierCurve(
+        config.basePrice,
+        config.basePrice * 10
+      );
+    }
+    
+    onChange(newConfig);
   };
 
   const handleBasePriceChange = (value: number[]) => {
@@ -74,6 +86,13 @@ export function BondingCurveEditor({ config, onChange, className = '' }: Bonding
       description: 'Diminishing price increases',
       color: 'text-green-500',
     },
+    {
+      type: 'bezier' as const,
+      icon: Sparkles,
+      label: 'Custom Bezier',
+      description: 'Drag control points to shape curve',
+      color: 'text-purple-500',
+    },
   ];
 
   return (
@@ -81,7 +100,7 @@ export function BondingCurveEditor({ config, onChange, className = '' }: Bonding
       {/* Curve Type Selector */}
       <div>
         <h3 className="text-sm font-semibold mb-3">Curve Type</h3>
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-4 gap-3">
           {curveTypes.map(({ type, icon: Icon, label, description, color }) => (
             <motion.button
               key={type}
@@ -225,6 +244,25 @@ export function BondingCurveEditor({ config, onChange, className = '' }: Bonding
             <p className="text-xs text-muted-foreground mt-1">
               Logarithmic scaling factor (diminishing returns)
             </p>
+          </motion.div>
+        )}
+
+        {curveType === 'bezier' && config.bezierCurve && (
+          <motion.div
+            key="bezier"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+          >
+            <BezierCurveEditor
+              curveData={config.bezierCurve}
+              onChange={(newCurveData) => {
+                onChange({
+                  ...config,
+                  bezierCurve: newCurveData,
+                });
+              }}
+            />
           </motion.div>
         )}
       </AnimatePresence>

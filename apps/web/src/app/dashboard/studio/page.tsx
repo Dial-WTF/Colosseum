@@ -23,11 +23,19 @@ export default function StudioDashboard() {
   const [projects, setProjects] = useState<ProjectGridItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'image' | 'audio'>('all');
-  const [stats, setStats] = useState({ projectCount: 0, totalVersions: 0, storageSize: 0 });
+  const [stats, setStats] = useState({ projectCount: 0, totalVersions: 0 });
 
   useEffect(() => {
     loadProjects();
     loadStats();
+    
+    // Set up periodic refresh to keep dashboard updated (every 5 seconds)
+    const refreshInterval = setInterval(() => {
+      loadProjects();
+      loadStats();
+    }, 5000);
+
+    return () => clearInterval(refreshInterval);
   }, []);
 
   const loadProjects = async () => {
@@ -201,11 +209,11 @@ export default function StudioDashboard() {
             <div className="bg-muted/50 rounded-lg p-4 border border-border">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-accent/10 rounded-lg">
-                  <FileDown size={24} className="text-accent-foreground" />
+                  <Clock size={24} className="text-accent-foreground" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Storage Used</p>
-                  <p className="text-2xl font-bold text-foreground">{formatBytes(stats.storageSize)}</p>
+                  <p className="text-sm text-muted-foreground">Active Projects</p>
+                  <p className="text-2xl font-bold text-foreground">{projects.filter(p => p.status === 'draft').length}</p>
                 </div>
               </div>
             </div>

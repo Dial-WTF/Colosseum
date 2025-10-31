@@ -27,6 +27,7 @@ A professional audio editor for ringtone creation powered by WaveSurfer.js and T
 
 **Features:**
 - ✨ **AI Audio Generation** - Generate sounds with ElevenLabs SFX API
+- 🎵 **Suno Flow Jockey** - Full song generation with vocals via Suno API (up to 4 minutes)
 - 🎼 **Waveform Visualization** - See your audio with WaveSurfer.js
 - ✂️ **Trim & Crop** - Select regions and trim audio
 - 🔊 **Volume Control** - Adjust playback volume
@@ -34,15 +35,18 @@ A professional audio editor for ringtone creation powered by WaveSurfer.js and T
 - 💾 **Export** - Download as WAV
 
 **AI Types:**
-- Ringtones (10 seconds)
-- Sound Effects (5 seconds)
+- **Ringtones** (10 seconds) - ElevenLabs SFX
+- **Sound Effects** (5 seconds) - ElevenLabs SFX
+- **Full Songs** (up to 4 minutes) - Suno API with genre, mood, and BPM control
 
 ## Tech Stack
 
 - **Image Editor**: Fabric.js 6.5.1
 - **Audio Editor**: WaveSurfer.js 7.8.10 + Tone.js 15.1.3
 - **AI Image**: Replicate (Stable Diffusion XL)
-- **AI Audio**: ElevenLabs (Text-to-SFX)
+- **AI Audio**: 
+  - ElevenLabs (Text-to-SFX) - Sound effects and ringtones
+  - Suno API (sunoapi.org) - Full song generation with vocals
 - **Framework**: Next.js 15 + React 18
 
 ## Setup
@@ -61,13 +65,17 @@ Create a `.env.local` file:
 # AI Image Generation (Replicate)
 REPLICATE_API_TOKEN=your_token_here
 
-# AI Audio Generation (ElevenLabs)
+# AI Audio Generation (ElevenLabs - Sound Effects)
 ELEVENLABS_API_KEY=your_key_here
+
+# AI Music Generation (Suno - Full Songs)
+SUNO_API_KEY=your_sunoapi_org_key_here
 ```
 
 **Get API Keys:**
 - Replicate: https://replicate.com/account/api-tokens
 - ElevenLabs: https://elevenlabs.io/app/settings/api-keys
+- Suno API: https://sunoapi.org
 
 ### 3. Run Development Server
 

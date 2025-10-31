@@ -32,6 +32,9 @@ export function ProfilePhotoEditor({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -54,6 +57,11 @@ export function ProfilePhotoEditor({
 
       const data = await response.json();
       onPhotoChange(data.url);
+      
+      // Reset the file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     } catch (error: any) {
       console.error('Error uploading photo:', error);
       alert(error.message || 'Failed to upload photo');
@@ -106,10 +114,12 @@ export function ProfilePhotoEditor({
       <div className={`${sizeClass} ${roundedClass} bg-secondary/30 border-2 border-dashed border-border overflow-hidden relative group`}>
         {currentPhotoUrl ? (
           <Image
+            key={currentPhotoUrl}
             src={currentPhotoUrl}
             alt={`${type} photo`}
             fill
             className="object-cover"
+            unoptimized
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
@@ -120,6 +130,7 @@ export function ProfilePhotoEditor({
         {/* Overlay buttons on hover */}
         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
           <button
+            type="button"
             onClick={() => fileInputRef.current?.click()}
             disabled={isUploading}
             className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50"
@@ -128,6 +139,7 @@ export function ProfilePhotoEditor({
             {isUploading ? <Loader2 size={20} className="animate-spin" /> : <Upload size={20} />}
           </button>
           <button
+            type="button"
             onClick={() => setShowGenerateModal(true)}
             disabled={isGenerating}
             className="p-2 bg-primary text-primary-foreground rounded-full hover:bg-primary/90 transition-colors disabled:opacity-50"
@@ -150,6 +162,7 @@ export function ProfilePhotoEditor({
       {/* Action Buttons */}
       <div className="mt-4 flex gap-2">
         <button
+          type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={isUploading}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50"
@@ -167,6 +180,7 @@ export function ProfilePhotoEditor({
           )}
         </button>
         <button
+          type="button"
           onClick={() => setShowGenerateModal(true)}
           disabled={isGenerating}
           className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"
@@ -215,6 +229,7 @@ export function ProfilePhotoEditor({
 
             <div className="mt-6 flex gap-2">
               <button
+                type="button"
                 onClick={() => setShowGenerateModal(false)}
                 disabled={isGenerating}
                 className="flex-1 px-4 py-2 bg-secondary text-foreground rounded-lg hover:bg-secondary/80 transition-colors disabled:opacity-50"
@@ -222,6 +237,7 @@ export function ProfilePhotoEditor({
                 Cancel
               </button>
               <button
+                type="button"
                 onClick={handleGenerate}
                 disabled={isGenerating || !generatePrompt.trim()}
                 className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50"

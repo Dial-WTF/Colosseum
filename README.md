@@ -109,6 +109,7 @@ NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
 # AI Generation APIs
 REPLICATE_API_TOKEN=your_replicate_token
 ELEVENLABS_API_KEY=your_elevenlabs_key
+SUNO_API_KEY=your_sunoapi_org_key  # For Suno Flow Jockey music generation
 
 # Storj S3 Configuration (User Data Storage)
 STORJ_ENDPOINT=https://gateway.storjshare.io

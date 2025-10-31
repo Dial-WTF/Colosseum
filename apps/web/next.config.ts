@@ -2,6 +2,40 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'replicate.delivery',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'fal.media',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.fal.media',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'pbxt.replicate.delivery',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: '*.storj.io',
+        pathname: '/**',
+      },
+      {
+        protocol: 'https',
+        hostname: 'link.storjshare.io',
+        pathname: '/**',
+      },
+    ],
+  },
   webpack: (config) => {
     config.resolve.fallback = {
       ...config.resolve.fallback,
