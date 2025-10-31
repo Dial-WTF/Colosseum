@@ -10,6 +10,7 @@ interface SunoGenerateRequest {
   tags?: string;
   title?: string;
   model?: string;
+  callBackUrl?: string;
 }
 
 interface SunoGenerateResponse {
@@ -59,6 +60,11 @@ export async function POST(request: NextRequest) {
       .filter(Boolean)
       .join(', ');
 
+    // Construct callback URL
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const host = request.headers.get('host');
+    const callBackUrl = `${protocol}://${host}/api/generate/audio/suno/callback`;
+
     // Prepare Suno API request
     const sunoRequest: SunoGenerateRequest = {
       prompt: musicPrompt,
@@ -66,6 +72,7 @@ export async function POST(request: NextRequest) {
       wait_audio: true, // Wait for audio to be generated
       tags,
       model: 'V4', // Use V4 model for balanced quality and speed
+      callBackUrl,
     };
 
     console.log('🎵 Sending request to Suno API:', sunoRequest);
