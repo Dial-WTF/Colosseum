@@ -1,0 +1,14 @@
+# Build outputs
+.next/
+node_modules/
+dist/
+build/
+out/
+
+# Anchor build
+target/
+.anchor/
+
+# Linear issues
+linear/
+
