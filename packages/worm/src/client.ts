@@ -160,26 +160,29 @@ export async function listObjects(prefix: string): Promise<Array<{
   lastModified: string;
   contentType?: string;
 }>> {
-  const worm = getWormClient();
-  
-  // Access the underlying S3 client
-  // S3Worm uses AWS S3 SDK under the hood
-  const s3Client = (worm as any).client;
-  
-  if (!s3Client) {
-    console.error('S3 client not available on worm instance');
-    return [];
-  }
-
-  const config = getStorjConfig();
-  
   try {
-    // Use the ListObjectsV2Command from AWS SDK
-    const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+    const config = getStorjConfig();
+    
+    // Import AWS SDK utilities
+    const { S3Client, ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+    
+    // Create a dedicated S3 client for listing objects
+    const s3Client = new S3Client({
+      endpoint: config.endpoint,
+      region: 'us-east-1', // Storj uses us-east-1 as default
+      credentials: {
+        accessKeyId: config.credentials.accessKeyId,
+        secretAccessKey: config.credentials.secretAccessKey,
+      },
+      forcePathStyle: true, // Required for Storj
+    });
+    
+    // Remove leading slash if present
+    const cleanPrefix = prefix.startsWith('/') ? prefix.slice(1) : prefix;
     
     const command = new ListObjectsV2Command({
       Bucket: config.bucket,
-      Prefix: prefix,
+      Prefix: cleanPrefix,
     });
 
     const response = await s3Client.send(command);
