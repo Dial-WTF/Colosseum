@@ -79,6 +79,12 @@ export async function POST(request: NextRequest) {
 
     // Upload to Storj
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     await worm.putBytes(filename, buffer, file.type);
 
     // Generate signed URL (expires in 24 hours)

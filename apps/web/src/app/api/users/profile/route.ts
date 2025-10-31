@@ -46,6 +46,12 @@ export async function GET(request: NextRequest) {
 
     const { getWormClient, UserRepository } = await import('@dial/worm');
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
 
     // Get profile from Storj
@@ -101,6 +107,12 @@ export async function PUT(request: NextRequest) {
 
     const { getWormClient, UserRepository } = await import('@dial/worm');
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
 
     // Get existing profile or create new one

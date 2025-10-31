@@ -40,6 +40,12 @@ export async function DELETE(request: NextRequest) {
 
     // Delete from Storj
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     // Use the underlying S3 client to delete the object
     await (worm as any).delete?.(filename);
 

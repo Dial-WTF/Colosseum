@@ -34,6 +34,12 @@ export async function GET(
 
     // Get user profile from Storj
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
     const profile = await userRepo.getProfile(address);
 
@@ -78,6 +84,12 @@ export async function PUT(
 
     // Get or create profile
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
     let profile = await userRepo.getProfile(address);
 
@@ -121,6 +133,12 @@ export async function POST(
 
     // Check if profile already exists
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
     const exists = await userRepo.userExists(address);
 

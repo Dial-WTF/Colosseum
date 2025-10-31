@@ -31,6 +31,12 @@ export async function GET(
     }
 
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
     const collection = await userRepo.getCollection(address);
 
@@ -73,6 +79,12 @@ export async function POST(
     const { action, nft } = body;
 
     const worm = getWormClient();
+    if (!worm) {
+      return NextResponse.json(
+        { error: 'Storage client not available' },
+        { status: 500 }
+      );
+    }
     const userRepo = new UserRepository(worm);
     let collection = await userRepo.getCollection(address);
 

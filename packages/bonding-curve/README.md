@@ -127,3 +127,4 @@ This package is designed to be:
 - **Precision-First**: Uses Decimal.js to avoid floating-point errors
 - **Well-Typed**: Full TypeScript support with exported types
 
+
