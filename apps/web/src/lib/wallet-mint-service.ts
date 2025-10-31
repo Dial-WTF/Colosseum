@@ -71,8 +71,16 @@ function getMetaplex(
     throw new Error('Wallet not connected');
   }
 
-  return Metaplex.make(connection)
+  const metaplex = Metaplex.make(connection)
     .use(walletAdapterIdentity(wallet));
+
+  console.log('🔧 Metaplex instance created with:', {
+    rpcEndpoint: connection.rpcEndpoint,
+    wallet: wallet.publicKey.toBase58(),
+    commitment: connection.commitment,
+  });
+
+  return metaplex;
 }
 
 /**
@@ -110,6 +118,51 @@ function buildMetadata(params: WalletMintNFTParams, creatorAddress: string) {
 }
 
 /**
+ * Check if wallet has sufficient balance for minting
+ */
+async function checkWalletBalance(
+  connection: Connection,
+  publicKey: PublicKey,
+  nftType: 'master-edition' | 'sft' | 'cnft'
+): Promise<{ sufficient: boolean; balance: number; required: number }> {
+  const balance = await connection.getBalance(publicKey);
+  const balanceInSol = balance / 1_000_000_000;
+  const requiredSol = estimateWalletMintFee(nftType);
+
+  return {
+    sufficient: balanceInSol >= requiredSol,
+    balance: balanceInSol,
+    required: requiredSol,
+  };
+}
+
+/**
+ * Airdrop SOL for devnet testing
+ */
+async function airdropDevnetSol(
+  connection: Connection,
+  publicKey: PublicKey,
+  amount: number = 2
+): Promise<void> {
+  try {
+    console.log(`🪂 Requesting ${amount} SOL airdrop for ${publicKey.toBase58()}...`);
+    const signature = await connection.requestAirdrop(
+      publicKey,
+      amount * 1_000_000_000
+    );
+    
+    // Wait for confirmation
+    await connection.confirmTransaction(signature, 'confirmed');
+    console.log(`✅ Airdrop confirmed: ${signature}`);
+  } catch (error) {
+    console.error('❌ Airdrop failed:', error);
+    throw new Error(
+      `Failed to airdrop SOL: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
  * Mint NFT using connected wallet
  */
 export async function mintNFTWithWallet(
@@ -124,6 +177,46 @@ export async function mintNFTWithWallet(
 
     const connection = getConnection();
     const metaplex = getMetaplex(connection, wallet);
+
+    // Check wallet balance
+    console.log('💰 Checking wallet balance...');
+    const balanceCheck = await checkWalletBalance(
+      connection,
+      wallet.publicKey,
+      params.nftType
+    );
+
+    console.log(`Wallet balance: ${balanceCheck.balance.toFixed(4)} SOL`);
+    console.log(`Required: ${balanceCheck.required.toFixed(4)} SOL`);
+
+    // If insufficient balance and on devnet, request airdrop
+    if (!balanceCheck.sufficient) {
+      const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet';
+      
+      if (network === 'devnet') {
+        onProgress?.({
+          step: 'uploading',
+          message: 'Insufficient balance detected. Requesting devnet airdrop...',
+          percentage: 5,
+        });
+
+        try {
+          await airdropDevnetSol(connection, wallet.publicKey, 2);
+          console.log('✅ Airdrop successful!');
+        } catch (airdropError) {
+          throw new Error(
+            `Insufficient balance (${balanceCheck.balance.toFixed(4)} SOL) and airdrop failed. ` +
+            `Please manually airdrop SOL to your wallet: solana airdrop 2 ${wallet.publicKey.toBase58()}`
+          );
+        }
+      } else {
+        throw new Error(
+          `Insufficient balance: ${balanceCheck.balance.toFixed(4)} SOL. ` +
+          `Required: ${balanceCheck.required.toFixed(4)} SOL. ` +
+          `Please add SOL to your wallet (${wallet.publicKey.toBase58()}) to continue.`
+        );
+      }
+    }
 
     // Step 1: Upload metadata to storage
     onProgress?.({
@@ -163,7 +256,7 @@ export async function mintNFTWithWallet(
     console.log('⚡ Minting NFT on Solana with wallet...');
     const royaltyBasisPoints = params.royaltyPercentage * 100; // Convert % to basis points
 
-    // Prepare creators array
+    // Prepare creators array - must match the format expected by Metaplex
     const creators = [
       {
         address: wallet.publicKey,
@@ -171,7 +264,24 @@ export async function mintNFTWithWallet(
       },
     ];
 
+    // Determine maxSupply based on NFT type
+    // Master Edition: 0 means unique 1/1 NFT
+    // SFT: Uses the bonding curve's maxSupply
+    const maxSupply = params.nftType === 'master-edition' ? 0 : params.bondingCurve.maxSupply;
+
+    console.log('📋 NFT Creation Parameters:', {
+      uri: metadataUri,
+      name: params.name,
+      symbol: params.symbol,
+      sellerFeeBasisPoints: royaltyBasisPoints,
+      tokenOwner: wallet.publicKey.toBase58(),
+      updateAuthority: wallet.publicKey.toBase58(),
+      maxSupply,
+      nftType: params.nftType,
+    });
+
     // Create the NFT using Metaplex SDK with wallet adapter
+    // CRITICAL: Must specify tokenOwner and updateAuthority to properly initialize accounts
     const { nft } = await metaplex.nfts().create({
       uri: metadataUri,
       name: params.name,
@@ -179,7 +289,9 @@ export async function mintNFTWithWallet(
       sellerFeeBasisPoints: royaltyBasisPoints,
       creators,
       isMutable: true,
-      maxSupply: params.nftType === 'master-edition' ? 0 : params.bondingCurve.maxSupply,
+      maxSupply,
+      tokenOwner: wallet.publicKey, // The wallet that will own the NFT token
+      updateAuthority: wallet.publicKey, // The wallet that can update metadata
     });
 
     // Step 3: Confirm transaction
@@ -221,18 +333,48 @@ export async function mintNFTWithWallet(
       explorerUrl,
       metadataUri,
     };
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error minting NFT with wallet:', error);
+    
+    // Extract more detailed error information
+    let errorMessage = 'Failed to mint NFT';
+    
+    if (error instanceof Error) {
+      errorMessage = error.message;
+      
+      // Check for specific Solana/Metaplex errors
+      if (error.message.includes('Attempt to debit an account')) {
+        errorMessage = 
+          'Transaction failed: Missing or unfunded account. ' +
+          'This usually means the wallet needs more SOL or an account needs initialization. ' +
+          `Wallet: ${wallet.publicKey?.toBase58()}`;
+      } else if (error.message.includes('Simulation failed')) {
+        errorMessage = 
+          'Transaction simulation failed. Please check your wallet balance and network connection. ' +
+          `Details: ${error.message}`;
+      } else if (error.message.includes('insufficient funds')) {
+        errorMessage = 
+          'Insufficient funds in wallet. Please add more SOL to cover transaction fees. ' +
+          `Wallet: ${wallet.publicKey?.toBase58()}`;
+      }
+    }
+    
+    // Log additional error context
+    console.error('Error context:', {
+      walletAddress: wallet.publicKey?.toBase58(),
+      nftType: params.nftType,
+      errorName: error?.name,
+      errorCause: error?.cause,
+      errorStack: error?.stack,
+    });
     
     onProgress?.({
       step: 'error',
-      message: error instanceof Error ? error.message : 'Failed to mint NFT',
+      message: errorMessage,
       percentage: 0,
     });
     
-    throw new Error(
-      `Failed to mint NFT: ${error instanceof Error ? error.message : 'Unknown error'}`
-    );
+    throw new Error(`Failed to mint NFT: ${errorMessage}`);
   }
 }
 

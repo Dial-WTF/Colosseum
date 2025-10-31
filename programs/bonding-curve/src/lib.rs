@@ -1,9 +1,11 @@
 use anchor_lang::prelude::*;
+use anchor_lang::solana_program::program::invoke_signed;
 use anchor_spl::token::{self, Mint, Token, TokenAccount, MintTo};
 use anchor_spl::associated_token::AssociatedToken;
-
-// Note: For production, integrate with Metaplex Token Metadata program
-// Currently using simplified minting without metadata accounts
+use mpl_token_metadata::{
+    instructions::{CreateMetadataAccountV3, CreateMetadataAccountV3InstructionArgs, CreateMasterEditionV3, CreateMasterEditionV3InstructionArgs},
+    types::{DataV2, Creator},
+};
 
 declare_id!("BC11111111111111111111111111111111111111111");
 
@@ -47,7 +49,7 @@ pub mod bonding_curve {
         Ok(())
     }
 
-    /// Mint a new edition with bonding curve pricing
+    /// Mint a new edition with bonding curve pricing (basic SPL token only)
     pub fn mint_edition(
         ctx: Context<MintEdition>,
     ) -> Result<()> {
@@ -110,6 +112,171 @@ pub mod bonding_curve {
         curve.total_volume += current_price;
 
         msg!("Edition #{} minted successfully!", curve.current_supply);
+        msg!("Total volume: {} lamports", curve.total_volume);
+
+        Ok(())
+    }
+
+    /// Mint a new edition with bonding curve pricing AND Metaplex metadata
+    pub fn mint_edition_with_metadata(
+        ctx: Context<MintEditionWithMetadata>,
+        name: String,
+        symbol: String,
+        uri: String,
+        seller_fee_basis_points: u16,
+    ) -> Result<()> {
+        let curve = &mut ctx.accounts.bonding_curve;
+        
+        // Check if max supply reached
+        require!(
+            curve.current_supply < curve.max_supply,
+            BondingCurveError::MaxSupplyReached
+        );
+
+        // Calculate current price based on curve
+        let current_price = calculate_price(
+            &curve.curve_type,
+            curve.base_price,
+            curve.price_increment,
+            curve.current_supply + 1, // Next edition number
+            curve.bezier_min_price,
+            curve.bezier_max_price,
+            curve.max_supply,
+        )?;
+
+        msg!("Minting edition #{} at {} lamports with metadata", curve.current_supply + 1, current_price);
+
+        // Transfer payment from buyer to creator
+        let ix = anchor_lang::solana_program::system_instruction::transfer(
+            &ctx.accounts.buyer.key(),
+            &curve.authority,
+            current_price,
+        );
+        anchor_lang::solana_program::program::invoke(
+            &ix,
+            &[
+                ctx.accounts.buyer.to_account_info(),
+                ctx.accounts.authority_account.to_account_info(),
+            ],
+        )?;
+
+        // Mint NFT token to buyer
+        let cpi_accounts = MintTo {
+            mint: ctx.accounts.edition_mint.to_account_info(),
+            to: ctx.accounts.buyer_token_account.to_account_info(),
+            authority: ctx.accounts.bonding_curve.to_account_info(),
+        };
+        
+        let seeds = &[
+            b"bonding_curve",
+            curve.collection_mint.as_ref(),
+            &[curve.bump],
+        ];
+        let signer = &[&seeds[..]];
+        
+        let cpi_program = ctx.accounts.token_program.to_account_info();
+        let cpi_ctx = CpiContext::new_with_signer(cpi_program, cpi_accounts, signer);
+        
+        token::mint_to(cpi_ctx, 1)?;
+
+        msg!("✅ Token minted, now creating Metaplex metadata...");
+
+        // Create Metaplex metadata account
+        let creator = Creator {
+            address: curve.authority,
+            verified: false,
+            share: 100,
+        };
+
+        let data_v2 = DataV2 {
+            name: name.clone(),
+            symbol: symbol.clone(),
+            uri: uri.clone(),
+            seller_fee_basis_points,
+            creators: Some(vec![creator]),
+            collection: Some(mpl_token_metadata::types::Collection {
+                verified: false,
+                key: ctx.accounts.collection_mint.key(),
+            }),
+            uses: None,
+        };
+
+        // Build CreateMetadataAccountV3 instruction
+        let create_metadata_ix = CreateMetadataAccountV3 {
+            metadata: ctx.accounts.edition_metadata.key(),
+            mint: ctx.accounts.edition_mint.key(),
+            mint_authority: ctx.accounts.bonding_curve.key(),
+            payer: ctx.accounts.buyer.key(),
+            update_authority: (ctx.accounts.bonding_curve.key(), true),
+            system_program: ctx.accounts.system_program.key(),
+            rent: None,
+        };
+
+        let create_metadata_args = CreateMetadataAccountV3InstructionArgs {
+            data: data_v2,
+            is_mutable: true,
+            collection_details: None,
+        };
+
+        let create_metadata_account_ix = create_metadata_ix.instruction(create_metadata_args);
+
+        // Invoke with bonding curve as signer
+        invoke_signed(
+            &create_metadata_account_ix,
+            &[
+                ctx.accounts.edition_metadata.to_account_info(),
+                ctx.accounts.edition_mint.to_account_info(),
+                ctx.accounts.bonding_curve.to_account_info(),
+                ctx.accounts.buyer.to_account_info(),
+                ctx.accounts.bonding_curve.to_account_info(), // update authority
+                ctx.accounts.system_program.to_account_info(),
+            ],
+            signer,
+        )?;
+
+        msg!("✅ Metadata account created");
+
+        // Create Master Edition (makes it a proper NFT with supply of 1)
+        let create_master_edition_ix = CreateMasterEditionV3 {
+            edition: ctx.accounts.edition_master_edition.key(),
+            mint: ctx.accounts.edition_mint.key(),
+            update_authority: ctx.accounts.bonding_curve.key(),
+            mint_authority: ctx.accounts.bonding_curve.key(),
+            payer: ctx.accounts.buyer.key(),
+            metadata: ctx.accounts.edition_metadata.key(),
+            token_program: ctx.accounts.token_program.key(),
+            system_program: ctx.accounts.system_program.key(),
+            rent: None,
+        };
+
+        let create_master_edition_args = CreateMasterEditionV3InstructionArgs {
+            max_supply: Some(0), // 0 means unique 1/1 edition
+        };
+
+        let create_master_edition_account_ix = create_master_edition_ix.instruction(create_master_edition_args);
+
+        invoke_signed(
+            &create_master_edition_account_ix,
+            &[
+                ctx.accounts.edition_master_edition.to_account_info(),
+                ctx.accounts.edition_mint.to_account_info(),
+                ctx.accounts.bonding_curve.to_account_info(), // update authority
+                ctx.accounts.bonding_curve.to_account_info(), // mint authority
+                ctx.accounts.buyer.to_account_info(),
+                ctx.accounts.edition_metadata.to_account_info(),
+                ctx.accounts.token_program.to_account_info(),
+                ctx.accounts.system_program.to_account_info(),
+            ],
+            signer,
+        )?;
+
+        msg!("✅ Master edition created");
+
+        // Update curve state
+        curve.current_supply += 1;
+        curve.total_volume += current_price;
+
+        msg!("🎉 Edition #{} minted successfully with full metadata!", curve.current_supply);
         msg!("Total volume: {} lamports", curve.total_volume);
 
         Ok(())
@@ -352,6 +519,53 @@ pub struct MintEdition<'info> {
 }
 
 #[derive(Accounts)]
+pub struct MintEditionWithMetadata<'info> {
+    #[account(
+        mut,
+        seeds = [b"bonding_curve", bonding_curve.collection_mint.as_ref()],
+        bump = bonding_curve.bump
+    )]
+    pub bonding_curve: Account<'info, BondingCurve>,
+    
+    pub collection_mint: Account<'info, Mint>,
+    
+    #[account(mut)]
+    pub edition_mint: Account<'info, Mint>,
+    
+    #[account(
+        init_if_needed,
+        payer = buyer,
+        associated_token::mint = edition_mint,
+        associated_token::authority = buyer
+    )]
+    pub buyer_token_account: Account<'info, TokenAccount>,
+    
+    #[account(mut)]
+    pub buyer: Signer<'info>,
+    
+    /// CHECK: Authority receives payment
+    #[account(mut, constraint = authority_account.key() == bonding_curve.authority)]
+    pub authority_account: AccountInfo<'info>,
+    
+    /// CHECK: Metaplex metadata account (PDA owned by Metaplex Token Metadata program)
+    #[account(mut)]
+    pub edition_metadata: UncheckedAccount<'info>,
+    
+    /// CHECK: Metaplex master edition account (PDA owned by Metaplex Token Metadata program)
+    #[account(mut)]
+    pub edition_master_edition: UncheckedAccount<'info>,
+    
+    /// CHECK: Metaplex Token Metadata program
+    #[account(address = mpl_token_metadata::ID)]
+    pub token_metadata_program: UncheckedAccount<'info>,
+    
+    pub token_program: Program<'info, Token>,
+    pub associated_token_program: Program<'info, AssociatedToken>,
+    pub system_program: Program<'info, System>,
+    pub rent: Sysvar<'info, Rent>,
+}
+
+#[derive(Accounts)]
 pub struct UpdateCurve<'info> {
     #[account(
         mut,
@@ -468,7 +682,7 @@ pub struct BezierPriceLookup {
     pub bump: u8,                   // 1
 }
 
-#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace)]
+#[derive(AnchorSerialize, AnchorDeserialize, Clone, PartialEq, Eq, InitSpace, Debug)]
 pub enum CurveType {
     Linear,
     Exponential,

@@ -167,7 +167,7 @@ export async function initializeCollectionWithCurve(
 }
 
 /**
- * Mint an edition from the bonding curve
+ * Mint an edition from the bonding curve (basic SPL token only)
  * Price is automatically calculated and enforced by the program
  */
 export async function mintEditionWithCurve(
@@ -233,6 +233,98 @@ export async function mintEditionWithCurve(
     console.error('Error minting edition:', error);
     throw new Error(
       `Failed to mint edition: ${error instanceof Error ? error.message : 'Unknown error'}`
+    );
+  }
+}
+
+/**
+ * Mint an edition from the bonding curve WITH Metaplex metadata
+ * This creates a proper NFT with on-chain metadata
+ * Price is automatically calculated and enforced by the program
+ */
+export async function mintEditionWithCurveAndMetadata(
+  params: MintWithBondingCurveParams,
+  payerKeypair: Keypair,
+  metadata: {
+    name: string;
+    symbol: string;
+    uri: string;
+    sellerFeeBasisPoints: number;
+  }
+): Promise<{
+  mint: string;
+  signature: string;
+  price: number;
+  edition: number;
+  metadata: string;
+  masterEdition: string;
+}> {
+  const connection = getConnection();
+  const bondingCurveClient = new BondingCurveClient(connection);
+
+  try {
+    // Get current price from on-chain
+    console.log('💰 Fetching current price...');
+    const currentPrice = await bondingCurveClient.getCurrentPrice(
+      params.collectionMint
+    );
+
+    if (!currentPrice) {
+      throw new Error('Bonding curve not found');
+    }
+
+    console.log(
+      `Current price: ${currentPrice.toNumber() / 1_000_000_000} SOL`
+    );
+
+    // Create edition mint
+    console.log('🪙 Creating edition mint...');
+    const editionMint = await createMint(
+      connection,
+      payerKeypair,
+      payerKeypair.publicKey, // mint authority (will transfer to bonding curve in instruction)
+      null, // freeze authority
+      0 // decimals (0 for NFT)
+    );
+
+    // Mint edition through bonding curve program WITH metadata
+    console.log('⚡ Minting through bonding curve with Metaplex metadata...');
+    const mintTx = await bondingCurveClient.mintEditionWithMetadata({
+      collectionMint: params.collectionMint,
+      editionMint,
+      buyer: params.buyer,
+      authority: payerKeypair.publicKey,
+      name: metadata.name,
+      symbol: metadata.symbol,
+      uri: metadata.uri,
+      sellerFeeBasisPoints: metadata.sellerFeeBasisPoints,
+    });
+
+    const signature = await sendAndConfirmTransaction(connection, mintTx, [
+      payerKeypair,
+    ]);
+
+    // Derive metadata PDAs for return
+    const [metadataPDA] = BondingCurveClient.getMetadataPDA(editionMint);
+    const [masterEditionPDA] = BondingCurveClient.getMasterEditionPDA(editionMint);
+
+    console.log(`✅ Edition #${params.editionNumber} minted with metadata!`);
+    console.log(`Signature: ${signature}`);
+    console.log(`Metadata: ${metadataPDA.toString()}`);
+    console.log(`Master Edition: ${masterEditionPDA.toString()}`);
+
+    return {
+      mint: editionMint.toString(),
+      signature,
+      price: currentPrice.toNumber() / 1_000_000_000,
+      edition: params.editionNumber,
+      metadata: metadataPDA.toString(),
+      masterEdition: masterEditionPDA.toString(),
+    };
+  } catch (error) {
+    console.error('Error minting edition with metadata:', error);
+    throw new Error(
+      `Failed to mint edition with metadata: ${error instanceof Error ? error.message : 'Unknown error'}`
     );
   }
 }

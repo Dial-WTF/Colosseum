@@ -9,28 +9,33 @@ import {
   Transaction,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
-} from '@solana/web3.js';
+} from "@solana/web3.js";
 import {
   TOKEN_PROGRAM_ID,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   getAssociatedTokenAddress,
-} from '@solana/spl-token';
-import { Program, AnchorProvider, BN, Idl } from '@coral-xyz/anchor';
-import { calculateBezierPrice as evalBezierPrice } from '@dial/bonding-curve';
+} from "@solana/spl-token";
+import { Program, AnchorProvider, BN, Idl } from "@coral-xyz/anchor";
+import { calculateBezierPrice as evalBezierPrice } from "@dial/bonding-curve";
 
 // Program ID (will be set after deployment)
 export const BONDING_CURVE_PROGRAM_ID = new PublicKey(
-  'BC11111111111111111111111111111111111111111'
+  "BC11111111111111111111111111111111111111111"
+);
+
+// Metaplex Token Metadata Program ID
+export const METADATA_PROGRAM_ID = new PublicKey(
+  "metaqbxxUerdq28cj1RbAWkYQm3ybzjb6a8bt518x1s"
 );
 
 /**
  * Curve types supported by the program
  */
 export enum CurveType {
-  Linear = 'linear',
-  Exponential = 'exponential',
-  Logarithmic = 'logarithmic',
-  Bezier = 'bezier',
+  Linear = "linear",
+  Exponential = "exponential",
+  Logarithmic = "logarithmic",
+  Bezier = "bezier",
 }
 
 /**
@@ -102,21 +107,61 @@ export interface MintEditionParams {
 }
 
 /**
+ * Parameters for minting an edition with Metaplex metadata
+ */
+export interface MintEditionWithMetadataParams {
+  collectionMint: PublicKey;
+  editionMint: PublicKey;
+  buyer: PublicKey;
+  authority: PublicKey;
+  name: string;
+  symbol: string;
+  uri: string;
+  sellerFeeBasisPoints: number;
+}
+
+/**
  * Bonding Curve Program Client
  */
 export class BondingCurveClient {
-  constructor(
-    private connection: Connection,
-    private program?: Program
-  ) {}
+  constructor(private connection: Connection, private program?: Program) {}
 
   /**
    * Get the PDA for a bonding curve
    */
   static getBondingCurvePDA(collectionMint: PublicKey): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('bonding_curve'), collectionMint.toBuffer()],
+      [Buffer.from("bonding_curve"), collectionMint.toBuffer()],
       BONDING_CURVE_PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get the PDA for a Metaplex metadata account
+   */
+  static getMetadataPDA(mint: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+      ],
+      METADATA_PROGRAM_ID
+    );
+  }
+
+  /**
+   * Get the PDA for a Metaplex master edition account
+   */
+  static getMasterEditionPDA(mint: PublicKey): [PublicKey, number] {
+    return PublicKey.findProgramAddressSync(
+      [
+        Buffer.from("metadata"),
+        METADATA_PROGRAM_ID.toBuffer(),
+        mint.toBuffer(),
+        Buffer.from("edition"),
+      ],
+      METADATA_PROGRAM_ID
     );
   }
 
@@ -132,16 +177,16 @@ export class BondingCurveClient {
     const curveTypeValue = this.curveTypeToValue(params.curveType);
 
     const tx = new Transaction();
-    
+
     // In a real implementation, you'd use the Anchor program here
     // For now, this is a placeholder structure
-    console.log('Initializing curve with PDA:', bondingCurvePDA.toString());
+    console.log("Initializing curve with PDA:", bondingCurvePDA.toString());
 
     return tx;
   }
 
   /**
-   * Mint a new edition from the bonding curve
+   * Mint a new edition from the bonding curve (basic SPL token only)
    */
   async mintEdition(params: MintEditionParams): Promise<Transaction> {
     const [bondingCurvePDA] = BondingCurveClient.getBondingCurvePDA(
@@ -155,9 +200,71 @@ export class BondingCurveClient {
     );
 
     const tx = new Transaction();
-    
+
     // In a real implementation, you'd construct the instruction here
-    console.log('Minting edition from curve:', bondingCurvePDA.toString());
+    console.log("Minting edition from curve:", bondingCurvePDA.toString());
+
+    return tx;
+  }
+
+  /**
+   * Mint a new edition from the bonding curve WITH Metaplex metadata
+   * This creates a proper NFT with metadata and master edition
+   */
+  async mintEditionWithMetadata(
+    params: MintEditionWithMetadataParams
+  ): Promise<Transaction> {
+    const [bondingCurvePDA] = BondingCurveClient.getBondingCurvePDA(
+      params.collectionMint
+    );
+
+    // Get buyer's token account
+    const buyerTokenAccount = await getAssociatedTokenAddress(
+      params.editionMint,
+      params.buyer
+    );
+
+    // Derive Metaplex PDAs
+    const [metadataPDA] = BondingCurveClient.getMetadataPDA(params.editionMint);
+    const [masterEditionPDA] = BondingCurveClient.getMasterEditionPDA(
+      params.editionMint
+    );
+
+    const tx = new Transaction();
+
+    // In a real implementation with Anchor, you'd construct the instruction:
+    // const instruction = await this.program.methods
+    //   .mintEditionWithMetadata(
+    //     params.name,
+    //     params.symbol,
+    //     params.uri,
+    //     params.sellerFeeBasisPoints
+    //   )
+    //   .accounts({
+    //     bondingCurve: bondingCurvePDA,
+    //     collectionMint: params.collectionMint,
+    //     editionMint: params.editionMint,
+    //     buyerTokenAccount,
+    //     buyer: params.buyer,
+    //     authorityAccount: params.authority,
+    //     editionMetadata: metadataPDA,
+    //     editionMasterEdition: masterEditionPDA,
+    //     tokenMetadataProgram: METADATA_PROGRAM_ID,
+    //     tokenProgram: TOKEN_PROGRAM_ID,
+    //     associatedTokenProgram: ASSOCIATED_TOKEN_PROGRAM_ID,
+    //     systemProgram: SystemProgram.programId,
+    //     rent: SYSVAR_RENT_PUBKEY,
+    //   })
+    //   .instruction();
+
+    // tx.add(instruction);
+
+    console.log(
+      "Minting edition with metadata from curve:",
+      bondingCurvePDA.toString()
+    );
+    console.log("Metadata PDA:", metadataPDA.toString());
+    console.log("Master Edition PDA:", masterEditionPDA.toString());
 
     return tx;
   }
@@ -168,13 +275,12 @@ export class BondingCurveClient {
   async fetchBondingCurve(
     collectionMint: PublicKey
   ): Promise<BondingCurveState | null> {
-    const [bondingCurvePDA] = BondingCurveClient.getBondingCurvePDA(
-      collectionMint
-    );
+    const [bondingCurvePDA] =
+      BondingCurveClient.getBondingCurvePDA(collectionMint);
 
     try {
       const accountInfo = await this.connection.getAccountInfo(bondingCurvePDA);
-      
+
       if (!accountInfo) {
         return null;
       }
@@ -183,7 +289,7 @@ export class BondingCurveClient {
       // This is a placeholder
       return null;
     } catch (error) {
-      console.error('Error fetching bonding curve:', error);
+      console.error("Error fetching bonding curve:", error);
       return null;
     }
   }
@@ -193,7 +299,7 @@ export class BondingCurveClient {
    */
   async getCurrentPrice(collectionMint: PublicKey): Promise<BN | null> {
     const curve = await this.fetchBondingCurve(collectionMint);
-    
+
     if (!curve) {
       return null;
     }
@@ -218,14 +324,14 @@ export class BondingCurveClient {
     switch (curveType) {
       case CurveType.Linear:
         // price = basePrice + (edition - 1) * increment
-        return basePrice.add(
-          priceIncrement.mul(new BN(edition - 1))
-        );
+        return basePrice.add(priceIncrement.mul(new BN(edition - 1)));
 
       case CurveType.Exponential:
         // price = basePrice * (1 + increment)^(edition - 1)
         // Simplified on-chain: price = basePrice + (basePrice * increment * (edition - 1) / 10000)
-        const multiplier = priceIncrement.mul(new BN(edition - 1)).div(new BN(10000));
+        const multiplier = priceIncrement
+          .mul(new BN(edition - 1))
+          .div(new BN(10000));
         return basePrice.add(basePrice.mul(multiplier));
 
       case CurveType.Logarithmic:
@@ -261,7 +367,7 @@ export class BondingCurveClient {
    */
   static getBezierLookupPDA(bondingCurvePDA: PublicKey): [PublicKey, number] {
     return PublicKey.findProgramAddressSync(
-      [Buffer.from('bezier_lookup'), bondingCurvePDA.toBuffer()],
+      [Buffer.from("bezier_lookup"), bondingCurvePDA.toBuffer()],
       BONDING_CURVE_PROGRAM_ID
     );
   }
@@ -278,20 +384,28 @@ export class BondingCurveClient {
   ): Promise<Transaction> {
     // Pre-calculate all prices using the Bezier curve
     const prices: BN[] = [];
-    
+
     for (let edition = 1; edition <= maxSupply; edition++) {
-      const price = this.calculateBezierPrice(edition, maxSupply, bezierCurveData);
+      const price = this.calculateBezierPrice(
+        edition,
+        maxSupply,
+        bezierCurveData
+      );
       prices.push(price);
     }
 
     // Convert to u64 array
-    const pricesArray = prices.map(p => p.toNumber());
+    const pricesArray = prices.map((p) => p.toNumber());
 
     const tx = new Transaction();
-    
+
     // In real implementation, construct the instruction here
     console.log(`Initializing Bezier lookup with ${pricesArray.length} prices`);
-    console.log(`Price range: ${formatSol(prices[0])} - ${formatSol(prices[prices.length - 1])} SOL`);
+    console.log(
+      `Price range: ${formatSol(prices[0])} - ${formatSol(
+        prices[prices.length - 1]
+      )} SOL`
+    );
 
     return tx;
   }
@@ -307,10 +421,10 @@ export class BondingCurveClient {
   ): BN {
     // Use the actual Bezier evaluation from @dial/bonding-curve package
     const priceDecimal = evalBezierPrice(edition, maxSupply, bezierCurveData);
-    
+
     // Convert Decimal to SOL number
     const priceInSol = priceDecimal.toNumber();
-    
+
     // Convert to lamports
     return solToLamports(priceInSol);
   }
@@ -325,9 +439,8 @@ export class BondingCurveClient {
       params.collectionMint
     );
 
-    const [bezierLookupPDA] = BondingCurveClient.getBezierLookupPDA(
-      bondingCurvePDA
-    );
+    const [bezierLookupPDA] =
+      BondingCurveClient.getBezierLookupPDA(bondingCurvePDA);
 
     // Get buyer's token account
     const buyerTokenAccount = await getAssociatedTokenAddress(
@@ -336,9 +449,9 @@ export class BondingCurveClient {
     );
 
     const tx = new Transaction();
-    
+
     // In real implementation, construct mint_edition_with_bezier_lookup instruction
-    console.log('Minting with Bezier lookup');
+    console.log("Minting with Bezier lookup");
     console.log(`Curve PDA: ${bondingCurvePDA.toString()}`);
     console.log(`Lookup PDA: ${bezierLookupPDA.toString()}`);
 
@@ -357,14 +470,13 @@ export class BondingCurveClient {
       maxSupply?: number;
     }
   ): Promise<Transaction> {
-    const [bondingCurvePDA] = BondingCurveClient.getBondingCurvePDA(
-      collectionMint
-    );
+    const [bondingCurvePDA] =
+      BondingCurveClient.getBondingCurvePDA(collectionMint);
 
     const tx = new Transaction();
-    
+
     // In a real implementation, construct update instruction
-    console.log('Updating curve:', bondingCurvePDA.toString());
+    console.log("Updating curve:", bondingCurvePDA.toString());
 
     return tx;
   }
@@ -409,7 +521,12 @@ export function simulatePriceSequence(
 
   for (let i = 1; i <= count; i++) {
     // @ts-ignore - accessing private method for simulation
-    const price = client.calculatePrice(curveType, basePrice, priceIncrement, i);
+    const price = client.calculatePrice(
+      curveType,
+      basePrice,
+      priceIncrement,
+      i
+    );
     prices.push(price);
   }
 
@@ -417,4 +534,3 @@ export function simulatePriceSequence(
 }
 
 export default BondingCurveClient;
-
