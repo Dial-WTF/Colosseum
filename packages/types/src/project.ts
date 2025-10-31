@@ -38,6 +38,7 @@ export interface ImageProjectData {
   height: number;
   backgroundColor: string;
   exportUrl?: string; // Data URL of exported image
+  _indexedDBRef?: string; // Reference to IndexedDB file
 }
 
 // Audio Project Data (WaveSurfer state)
@@ -49,6 +50,7 @@ export interface AudioProjectData {
   regions?: AudioRegion[];
   volume: number;
   exportUrl?: string; // Data URL of exported audio
+  _indexedDBRef?: string; // Reference to IndexedDB file
 }
 
 export interface AudioRegion {

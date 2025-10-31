@@ -2,6 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  transpilePackages: ['@dial/worm', '@dial/bonding-curve-program', '@dial/bonding-curve', '@dial/types', '@dial/shared'],
   images: {
     remotePatterns: [
       {

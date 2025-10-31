@@ -291,7 +291,7 @@ export async function mintNFTWithWallet(
       isMutable: true,
       maxSupply,
       tokenOwner: wallet.publicKey, // The wallet that will own the NFT token
-      updateAuthority: wallet.publicKey, // The wallet that can update metadata
+      // updateAuthority defaults to the identity set on metaplex
     });
 
     // Step 3: Confirm transaction
