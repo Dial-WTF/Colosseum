@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Plus, Clock, Image as ImageIcon, Music } from "lucide-react";
 import type { ProjectGridItem } from "@dial/types";
-import { getProjectsForGrid } from "@/lib/project-service";
+import { useUser } from "@/providers/user-context";
+import { getProjectsForGrid, setCurrentUserAddress } from "@/lib/project-service";
 
 interface ProjectListProps {
   type: "image" | "audio";
@@ -18,10 +19,17 @@ export function ProjectList({
   currentProjectId,
 }: ProjectListProps) {
   const router = useRouter();
+  const { address } = useUser();
   const [projects, setProjects] = useState<ProjectGridItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Set current user address for project service
   useEffect(() => {
+    setCurrentUserAddress(address || null);
+  }, [address]);
+
+  useEffect(() => {
+    if (!address) return; // Wait for address to be available
     loadProjects();
 
     // Set up periodic refresh to keep list updated (every 5 seconds)
@@ -30,7 +38,7 @@ export function ProjectList({
     }, 5000);
 
     return () => clearInterval(refreshInterval);
-  }, [type]);
+  }, [type, address]);
 
   const loadProjects = async () => {
     setIsLoading(true);

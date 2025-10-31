@@ -1,9 +1,17 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import type { ProjectGridItem } from '@dial/types';
-import { getProjectsForGrid, deleteProject, projectStorage, duplicateProject, exportProject } from '@/lib/project-service';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import type { ProjectGridItem } from "@dial/types";
+import { useUser } from "@/providers/user-context";
+import {
+  getProjectsForGrid,
+  deleteProject,
+  projectStorage,
+  duplicateProject,
+  exportProject,
+  setCurrentUserAddress,
+} from "@/lib/project-service";
 import {
   Image as ImageIcon,
   Music,
@@ -16,19 +24,26 @@ import {
   Grid3x3,
   Clock,
   Tag,
-} from 'lucide-react';
+} from "lucide-react";
 
 export default function StudioDashboard() {
   const router = useRouter();
+  const { address } = useUser();
   const [projects, setProjects] = useState<ProjectGridItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [filter, setFilter] = useState<'all' | 'image' | 'audio'>('all');
+  const [filter, setFilter] = useState<"all" | "image" | "audio">("all");
   const [stats, setStats] = useState({ projectCount: 0, totalVersions: 0 });
 
+  // Set current user address for project service
   useEffect(() => {
+    setCurrentUserAddress(address || null);
+  }, [address]);
+
+  useEffect(() => {
+    if (!address) return; // Wait for wallet to connect
     loadProjects();
     loadStats();
-    
+
     // Set up periodic refresh to keep dashboard updated (every 5 seconds)
     const refreshInterval = setInterval(() => {
       loadProjects();
@@ -36,7 +51,7 @@ export default function StudioDashboard() {
     }, 5000);
 
     return () => clearInterval(refreshInterval);
-  }, []);
+  }, [address]);
 
   const loadProjects = async () => {
     setIsLoading(true);
@@ -44,7 +59,7 @@ export default function StudioDashboard() {
       const data = await getProjectsForGrid();
       setProjects(data);
     } catch (error) {
-      console.error('Failed to load projects:', error);
+      console.error("Failed to load projects:", error);
     } finally {
       setIsLoading(false);
     }
@@ -55,16 +70,20 @@ export default function StudioDashboard() {
     setStats(stats);
   };
 
-  const handleCreateProject = (type: 'image' | 'audio') => {
+  const handleCreateProject = (type: "image" | "audio") => {
     router.push(`/dashboard/create/${type}?mode=project`);
   };
 
-  const handleOpenProject = (id: string, type: 'image' | 'audio') => {
+  const handleOpenProject = (id: string, type: "image" | "audio") => {
     router.push(`/dashboard/create/${type}?projectId=${id}`);
   };
 
   const handleDeleteProject = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+    if (
+      !confirm(
+        "Are you sure you want to delete this project? This action cannot be undone."
+      )
+    ) {
       return;
     }
 
@@ -73,8 +92,8 @@ export default function StudioDashboard() {
       await loadProjects();
       await loadStats();
     } catch (error) {
-      console.error('Failed to delete project:', error);
-      alert('Failed to delete project');
+      console.error("Failed to delete project:", error);
+      alert("Failed to delete project");
     }
   };
 
@@ -84,8 +103,8 @@ export default function StudioDashboard() {
       await loadProjects();
       await loadStats();
     } catch (error) {
-      console.error('Failed to duplicate project:', error);
-      alert('Failed to duplicate project');
+      console.error("Failed to duplicate project:", error);
+      alert("Failed to duplicate project");
     }
   };
 
@@ -94,21 +113,21 @@ export default function StudioDashboard() {
       const json = await exportProject(id);
       if (!json) return;
 
-      const blob = new Blob([json], { type: 'application/json' });
+      const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
       link.download = `project-${id}.json`;
       link.click();
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('Failed to export project:', error);
-      alert('Failed to export project');
+      console.error("Failed to export project:", error);
+      alert("Failed to export project");
     }
   };
 
   const filteredProjects = projects.filter(
-    (p) => filter === 'all' || p.type === filter
+    (p) => filter === "all" || p.type === filter
   );
 
   const formatDate = (timestamp: number) => {
@@ -119,36 +138,41 @@ export default function StudioDashboard() {
     const diffHours = Math.floor(diffMs / 3600000);
     const diffDays = Math.floor(diffMs / 86400000);
 
-    if (diffMins < 1) return 'Just now';
+    if (diffMins < 1) return "Just now";
     if (diffMins < 60) return `${diffMins}m ago`;
     if (diffHours < 24) return `${diffHours}h ago`;
     if (diffDays < 7) return `${diffDays}d ago`;
-    
+
     return date.toLocaleDateString();
   };
 
   const formatBytes = (bytes: number) => {
-    if (bytes === 0) return '0 B';
+    if (bytes === 0) return "0 B";
     const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const sizes = ["B", "KB", "MB", "GB"];
     const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    return Math.round((bytes / Math.pow(k, i)) * 100) / 100 + " " + sizes[i];
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'published': return 'bg-green-500/10 text-green-500 border-green-500/20';
-      case 'archived': return 'bg-gray-500/10 text-gray-500 border-gray-500/20';
-      default: return 'bg-blue-500/10 text-blue-500 border-blue-500/20';
+      case "published":
+        return "bg-green-500/10 text-green-500 border-green-500/20";
+      case "archived":
+        return "bg-gray-500/10 text-gray-500 border-gray-500/20";
+      default:
+        return "bg-blue-500/10 text-blue-500 border-blue-500/20";
     }
   };
 
-  if (isLoading) {
+  if (!address || isLoading) {
     return (
       <div className="flex min-h-screen items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto mb-6"></div>
-          <p className="text-foreground font-medium text-lg">Loading Projects...</p>
+          <p className="text-foreground font-medium text-lg">
+            {!address ? "Connecting Wallet..." : "Loading Projects..."}
+          </p>
         </div>
       </div>
     );
@@ -161,19 +185,23 @@ export default function StudioDashboard() {
         <div className="container mx-auto px-6 py-8">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h1 className="text-4xl font-bold text-foreground mb-2">Studio Projects</h1>
-              <p className="text-muted-foreground">Create, manage, and version your creative works</p>
+              <h1 className="text-4xl font-bold text-foreground mb-2">
+                Studio Projects
+              </h1>
+              <p className="text-muted-foreground">
+                Create, manage, and version your creative works
+              </p>
             </div>
             <div className="flex gap-3">
               <button
-                onClick={() => handleCreateProject('image')}
+                onClick={() => handleCreateProject("image")}
                 className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors font-medium"
               >
                 <ImageIcon size={20} />
                 New Image Project
               </button>
               <button
-                onClick={() => handleCreateProject('audio')}
+                onClick={() => handleCreateProject("audio")}
                 className="flex items-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors font-medium"
               >
                 <Music size={20} />
@@ -190,8 +218,12 @@ export default function StudioDashboard() {
                   <FolderOpen size={24} className="text-primary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Projects</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.projectCount}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Projects
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.projectCount}
+                  </p>
                 </div>
               </div>
             </div>
@@ -201,8 +233,12 @@ export default function StudioDashboard() {
                   <Grid3x3 size={24} className="text-secondary" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Total Versions</p>
-                  <p className="text-2xl font-bold text-foreground">{stats.totalVersions}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Total Versions
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {stats.totalVersions}
+                  </p>
                 </div>
               </div>
             </div>
@@ -212,8 +248,12 @@ export default function StudioDashboard() {
                   <Clock size={24} className="text-accent-foreground" />
                 </div>
                 <div>
-                  <p className="text-sm text-muted-foreground">Active Projects</p>
-                  <p className="text-2xl font-bold text-foreground">{projects.filter(p => p.status === 'draft').length}</p>
+                  <p className="text-sm text-muted-foreground">
+                    Active Projects
+                  </p>
+                  <p className="text-2xl font-bold text-foreground">
+                    {projects.filter((p) => p.status === "draft").length}
+                  </p>
                 </div>
               </div>
             </div>
@@ -222,36 +262,36 @@ export default function StudioDashboard() {
           {/* Filters */}
           <div className="flex gap-2 mt-6">
             <button
-              onClick={() => setFilter('all')}
+              onClick={() => setFilter("all")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'all'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                filter === "all"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
               All ({projects.length})
             </button>
             <button
-              onClick={() => setFilter('image')}
+              onClick={() => setFilter("image")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'image'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                filter === "image"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
               <ImageIcon size={16} className="inline mr-2" />
-              Images ({projects.filter(p => p.type === 'image').length})
+              Images ({projects.filter((p) => p.type === "image").length})
             </button>
             <button
-              onClick={() => setFilter('audio')}
+              onClick={() => setFilter("audio")}
               className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                filter === 'audio'
-                  ? 'bg-primary text-primary-foreground'
-                  : 'bg-muted text-muted-foreground hover:bg-muted/80'
+                filter === "audio"
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-muted text-muted-foreground hover:bg-muted/80"
               }`}
             >
               <Music size={16} className="inline mr-2" />
-              Audio ({projects.filter(p => p.type === 'audio').length})
+              Audio ({projects.filter((p) => p.type === "audio").length})
             </button>
           </div>
         </div>
@@ -264,18 +304,22 @@ export default function StudioDashboard() {
             <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-muted mb-6">
               <FolderOpen size={40} className="text-muted-foreground" />
             </div>
-            <h3 className="text-xl font-semibold text-foreground mb-2">No projects yet</h3>
-            <p className="text-muted-foreground mb-6">Create your first project to get started</p>
+            <h3 className="text-xl font-semibold text-foreground mb-2">
+              No projects yet
+            </h3>
+            <p className="text-muted-foreground mb-6">
+              Create your first project to get started
+            </p>
             <div className="flex gap-3 justify-center">
               <button
-                onClick={() => handleCreateProject('image')}
+                onClick={() => handleCreateProject("image")}
                 className="flex items-center gap-2 px-6 py-3 bg-primary text-primary-foreground rounded-lg hover:bg-primary/90 transition-colors"
               >
                 <ImageIcon size={20} />
                 New Image Project
               </button>
               <button
-                onClick={() => handleCreateProject('audio')}
+                onClick={() => handleCreateProject("audio")}
                 className="flex items-center gap-2 px-6 py-3 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
               >
                 <Music size={20} />
@@ -303,37 +347,53 @@ export default function StudioDashboard() {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      {project.type === 'image' ? (
-                        <ImageIcon size={48} className="text-muted-foreground" />
+                      {project.type === "image" ? (
+                        <ImageIcon
+                          size={48}
+                          className="text-muted-foreground"
+                        />
                       ) : (
                         <Music size={48} className="text-muted-foreground" />
                       )}
                     </div>
                   )}
-                  
+
                   {/* Type Badge */}
                   <div className="absolute top-2 right-2 px-2 py-1 bg-background/90 backdrop-blur-sm rounded text-xs font-medium border border-border">
-                    {project.type === 'image' ? (
-                      <><ImageIcon size={12} className="inline mr-1" />Image</>
+                    {project.type === "image" ? (
+                      <>
+                        <ImageIcon size={12} className="inline mr-1" />
+                        Image
+                      </>
                     ) : (
-                      <><Music size={12} className="inline mr-1" />Audio</>
+                      <>
+                        <Music size={12} className="inline mr-1" />
+                        Audio
+                      </>
                     )}
                   </div>
 
                   {/* Status Badge */}
-                  <div className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium border ${getStatusColor(project.status)}`}>
+                  <div
+                    className={`absolute top-2 left-2 px-2 py-1 rounded text-xs font-medium border ${getStatusColor(
+                      project.status
+                    )}`}
+                  >
                     {project.status}
                   </div>
                 </div>
 
                 {/* Content */}
                 <div className="p-4">
-                  <h3 className="font-semibold text-foreground mb-2 truncate">{project.name}</h3>
-                  
+                  <h3 className="font-semibold text-foreground mb-2 truncate">
+                    {project.name}
+                  </h3>
+
                   <div className="flex items-center gap-4 text-xs text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
                       <Grid3x3 size={14} />
-                      {project.versionCount} version{project.versionCount !== 1 ? 's' : ''}
+                      {project.versionCount} version
+                      {project.versionCount !== 1 ? "s" : ""}
                     </div>
                     <div className="flex items-center gap-1">
                       <Clock size={14} />
@@ -344,7 +404,9 @@ export default function StudioDashboard() {
                   {/* Actions */}
                   <div className="flex gap-2">
                     <button
-                      onClick={() => handleOpenProject(project.id, project.type)}
+                      onClick={() =>
+                        handleOpenProject(project.id, project.type)
+                      }
                       className="flex-1 flex items-center justify-center gap-2 px-3 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90 transition-colors text-sm font-medium"
                     >
                       <Edit size={14} />
@@ -381,4 +443,3 @@ export default function StudioDashboard() {
     </div>
   );
 }
-

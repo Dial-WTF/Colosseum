@@ -82,8 +82,8 @@ export function MintPackager({ audioData, initialData, onClose, onMint }: MintPa
   // Bonding curve
   const [bondingCurve, setBondingCurve] = useState<BondingCurveConfig>({
     type: 'linear',
-    basePrice: solToLamports(0.1),
-    priceIncrement: solToLamports(0.01),
+    basePrice: solToLamports(0.010),
+    priceIncrement: solToLamports(0.001),
     maxSupply: 100,
   });
   
@@ -627,22 +627,46 @@ export function MintPackager({ audioData, initialData, onClose, onMint }: MintPa
               <div className="bg-muted rounded-lg p-4">
                 <h4 className="font-semibold mb-3 text-foreground">Estimated Costs</h4>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">NFT Minting</span>
-                    <span className="font-medium text-foreground">~0.01 SOL</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Metadata Storage</span>
-                    <span className="font-medium text-foreground">~0.002 SOL</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground">Network Fees</span>
-                    <span className="font-medium text-foreground">~0.001 SOL</span>
-                  </div>
-                  <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
-                    <span className="text-foreground">Total</span>
-                    <span className="text-primary">~0.013 SOL</span>
-                  </div>
+                  {(() => {
+                    // Calculate costs dynamically
+                    const LAMPORTS_PER_SOL = 1_000_000_000;
+                    
+                    // NFT costs based on type
+                    const nftMintingCost = nftType === 'master-edition' ? 0.02 : nftType === 'sft' ? 0.015 : 0.001;
+                    const metadataStorageCost = 0.002;
+                    const networkFees = 0.001;
+                    
+                    // Bonding curve price (current edition price)
+                    const bondingCurvePrice = bondingCurve.basePrice / LAMPORTS_PER_SOL;
+                    
+                    // Total
+                    const total = nftMintingCost + metadataStorageCost + networkFees + bondingCurvePrice;
+                    
+                    return (
+                      <>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">NFT Minting</span>
+                          <span className="font-medium text-foreground">~{nftMintingCost.toFixed(4)} SOL</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Metadata Storage</span>
+                          <span className="font-medium text-foreground">~{metadataStorageCost.toFixed(4)} SOL</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Network Fees</span>
+                          <span className="font-medium text-foreground">~{networkFees.toFixed(4)} SOL</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-muted-foreground">Bonding Curve Purchase</span>
+                          <span className="font-medium text-primary">~{bondingCurvePrice.toFixed(4)} SOL</span>
+                        </div>
+                        <div className="border-t border-border pt-2 mt-2 flex justify-between font-semibold">
+                          <span className="text-foreground">Total</span>
+                          <span className="text-primary">~{total.toFixed(4)} SOL</span>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </div>

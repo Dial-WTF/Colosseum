@@ -22,7 +22,8 @@ import {
 import { AIGeneratorPanel } from './ai-generator-panel';
 import { VersionManager } from './version-manager';
 import { ProjectHeader } from './project-header';
-import { projectStorage, createProject, createVersion, getProject, updateProject as updateProjectApi, deleteVersion as deleteVersionApi, updateVersion as updateVersionApi } from '@/lib/project-service';
+import { useUser } from '@/providers/user-context';
+import { projectStorage, createProject, createVersion, getProject, updateProject as updateProjectApi, deleteVersion as deleteVersionApi, updateVersion as updateVersionApi, setCurrentUserAddress } from '@/lib/project-service';
 
 export function ImageStudioProject() {
   const router = useRouter();
@@ -51,10 +52,18 @@ export function ImageStudioProject() {
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
+  const { address } = useUser();
+
+  // Set current user address for project service
+  useEffect(() => {
+    setCurrentUserAddress(address || null);
+  }, [address]);
+
   // Initialize or load project
   useEffect(() => {
+    if (!address) return; // Wait for address to be available
     initializeProject();
-  }, [projectId, mode]);
+  }, [projectId, mode, address]);
 
   // Auto-save when changes are detected
   useEffect(() => {

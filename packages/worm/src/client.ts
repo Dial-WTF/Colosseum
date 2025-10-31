@@ -4,6 +4,8 @@
  */
 
 import { S3Worm } from '@decoperations/s3worm';
+import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
+import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner';
 
 export interface StorjConfig {
   endpoint: string;
@@ -16,17 +18,17 @@ export interface StorjConfig {
 
 /**
  * Get Storj configuration from environment variables
+ * Returns null if configuration is missing (for development without Storj)
  */
-export function getStorjConfig(): StorjConfig {
+export function getStorjConfig(): StorjConfig | null {
   const endpoint = process.env.NEXT_PUBLIC_STORJ_ENDPOINT || process.env.STORJ_ENDPOINT;
   const bucket = process.env.NEXT_PUBLIC_STORJ_BUCKET || process.env.STORJ_BUCKET;
   const accessKeyId = process.env.NEXT_PUBLIC_STORJ_ACCESS_KEY || process.env.STORJ_ACCESS_KEY;
   const secretAccessKey = process.env.NEXT_PUBLIC_STORJ_SECRET_KEY || process.env.STORJ_SECRET_KEY;
 
   if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) {
-    throw new Error(
-      'Missing Storj configuration. Please set STORJ_ENDPOINT, STORJ_BUCKET, STORJ_ACCESS_KEY, and STORJ_SECRET_KEY in your environment.'
-    );
+    console.warn('⚠️ Storj configuration not found. Storage features will be disabled.');
+    return null;
   }
 
   return {
@@ -42,9 +44,14 @@ export function getStorjConfig(): StorjConfig {
 /**
  * Create and configure the S3Worm client for Dial.WTF
  * Organized by user address: /users/[address]/
+ * Returns null if Storj is not configured
  */
-export function createWormClient(config?: StorjConfig): S3Worm {
+export function createWormClient(config?: StorjConfig): S3Worm | null {
   const storjConfig = config || getStorjConfig();
+  
+  if (!storjConfig) {
+    return null;
+  }
 
   return new S3Worm({
     endpoint: storjConfig.endpoint,
@@ -57,13 +64,16 @@ export function createWormClient(config?: StorjConfig): S3Worm {
  * Singleton instance of the S3Worm client
  */
 let wormClient: S3Worm | null = null;
+let wormClientInitialized = false;
 
 /**
  * Get the singleton S3Worm client instance
+ * Returns null if Storj is not configured
  */
-export function getWormClient(): S3Worm {
-  if (!wormClient) {
+export function getWormClient(): S3Worm | null {
+  if (!wormClientInitialized) {
     wormClient = createWormClient();
+    wormClientInitialized = true;
   }
   return wormClient;
 }
@@ -73,6 +83,7 @@ export function getWormClient(): S3Worm {
  */
 export function resetWormClient(): void {
   wormClient = null;
+  wormClientInitialized = false;
 }
 
 /**
@@ -80,15 +91,16 @@ export function resetWormClient(): void {
  * This creates a temporary URL that allows public access without exposing credentials
  * @param filename The file path within the bucket (e.g., "users/0x123.../avatar.png")
  * @param expiresIn Time in seconds until the URL expires (default: 1 hour)
- * @returns Promise resolving to the signed URL
+ * @returns Promise resolving to the signed URL or empty string if Storj is not configured
  */
 export async function getSignedUrl(filename: string, expiresIn: number = 3600): Promise<string> {
   try {
     const config = getStorjConfig();
     
-    // Import AWS SDK utilities
-    const { S3Client, GetObjectCommand } = await import('@aws-sdk/client-s3');
-    const { getSignedUrl: awsGetSignedUrl } = await import('@aws-sdk/s3-request-presigner');
+    if (!config) {
+      console.warn('⚠️ Cannot generate signed URL: Storj not configured');
+      return '';
+    }
     
     // Create a dedicated S3 client for signed URLs
     const s3Client = new S3Client({
@@ -152,7 +164,7 @@ export function getPublicUrl(filename: string): string {
 /**
  * List objects in the bucket with a given prefix
  * @param prefix The prefix to filter objects by (e.g., "users/0x123.../assets/")
- * @returns Array of objects in the bucket
+ * @returns Array of objects in the bucket (empty array if Storj is not configured)
  */
 export async function listObjects(prefix: string): Promise<Array<{
   key: string;
@@ -163,8 +175,10 @@ export async function listObjects(prefix: string): Promise<Array<{
   try {
     const config = getStorjConfig();
     
-    // Import AWS SDK utilities
-    const { S3Client, ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+    if (!config) {
+      console.warn('⚠️ Cannot list objects: Storj not configured');
+      return [];
+    }
     
     // Create a dedicated S3 client for listing objects
     const s3Client = new S3Client({

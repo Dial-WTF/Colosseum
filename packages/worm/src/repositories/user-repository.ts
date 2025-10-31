@@ -28,17 +28,28 @@ function uint8ArrayToString(arr: Uint8Array): string {
 }
 
 export class UserRepository {
-  constructor(private readonly worm: S3Worm) {}
+  constructor(private readonly worm: S3Worm | null) {}
+  
+  /**
+   * Require storage to be available
+   */
+  private requireStorage(): S3Worm {
+    if (!this.worm) {
+      throw new Error('Storage is not configured. Please set up Storj configuration.');
+    }
+    return this.worm;
+  }
 
   /**
    * Get JSON data from S3
    */
   private async getJSON<T>(key: string): Promise<T | null> {
     try {
+      const worm = this.requireStorage();
       // Note: S3Worm doesn't have a getBytes method in the basic API
       // We'll need to use the underlying S3 client or add a wrapper
       // For now, we'll use a placeholder that assumes the API exists
-      const data = await (this.worm as any).getBytes?.(key);
+      const data = await (worm as any).getBytes?.(key);
       if (!data) return null;
       const json = uint8ArrayToString(new Uint8Array(data));
       return JSON.parse(json) as T;
@@ -51,9 +62,10 @@ export class UserRepository {
    * Put JSON data to S3
    */
   private async putJSON(key: string, data: any): Promise<void> {
+    const worm = this.requireStorage();
     const json = JSON.stringify(data, null, 2);
     const bytes = stringToUint8Array(json);
-    await this.worm.putBytes(key, bytes, "application/json");
+    await worm.putBytes(key, bytes, "application/json");
   }
 
   /**

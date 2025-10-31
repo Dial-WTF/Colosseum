@@ -27,6 +27,7 @@ import {
   getProject,
   getProjectWithData,
   updateProject as updateProjectApi,
+  setCurrentUserAddress,
 } from "@/lib/project-service";
 import { useSolanaWallet } from "@/hooks/use-solana-wallet";
 
@@ -59,15 +60,27 @@ export function AudioStudioProject() {
   const [isDragging, setIsDragging] = useState(false);
   const [isAutoSaving, setIsAutoSaving] = useState(false);
   const [isWaveSurferReady, setIsWaveSurferReady] = useState(false);
+  const [projectListKey, setProjectListKey] = useState(0);
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { address, profile } = useUser();
   const solanaWallet = useSolanaWallet();
 
+  // Function to refresh the project list
+  const refreshProjectList = () => {
+    setProjectListKey((prev) => prev + 1);
+  };
+
+  // Set current user address for project service
+  useEffect(() => {
+    setCurrentUserAddress(address || null);
+  }, [address]);
+
   // Initialize or load project
   useEffect(() => {
+    if (!address) return; // Wait for address to be available
     initializeProject();
-  }, [projectId, mode]);
+  }, [projectId, mode, address]);
 
   // Auto-save when changes are detected
   useEffect(() => {
@@ -117,6 +130,8 @@ export function AudioStudioProject() {
         setProject(newProject);
         // Update URL with new project ID
         router.replace(`/dashboard/create/audio?projectId=${newProject.id}`);
+        // Refresh project list to show new project
+        refreshProjectList();
       }
     } catch (error) {
       console.error("Failed to initialize project:", error);
@@ -249,7 +264,6 @@ export function AudioStudioProject() {
     };
   }, [project?.id]);
 
-
   const loadProjectToWaveSurfer = async (projectToLoad: Project) => {
     if (
       !wavesurferRef.current ||
@@ -263,7 +277,9 @@ export function AudioStudioProject() {
 
       // Check if audio URL exists and is valid before trying to load
       if (!audioData.audioUrl || audioData.audioUrl.trim() === "") {
-        console.log("⏳ No audio URL available yet - waiting for audio to be generated or uploaded");
+        console.log(
+          "⏳ No audio URL available yet - waiting for audio to be generated or uploaded"
+        );
         setIsLoaded(false);
         return;
       }
@@ -355,14 +371,17 @@ export function AudioStudioProject() {
         setProject(updatedProject);
         setHasUnsavedChanges(false);
       }
+
+      // Refresh project list to show updates
+      refreshProjectList();
     } catch (error) {
       console.error("Auto-save failed:", error);
-      
+
       // If storage quota exceeded, provide helpful error message
-      if (error instanceof Error && error.message.includes('quota')) {
-        throw new Error('Storage quota exceeded. Please delete old projects.');
+      if (error instanceof Error && error.message.includes("quota")) {
+        throw new Error("Storage quota exceeded. Please delete old projects.");
       }
-      
+
       // Don't throw other errors - auto-save failures should be mostly silent
     }
   };
@@ -381,6 +400,9 @@ export function AudioStudioProject() {
       if (updatedProject) {
         setProject(updatedProject);
       }
+
+      // Refresh project list to show updated info
+      refreshProjectList();
     } catch (error) {
       console.error("Failed to update project:", error);
       throw error;
@@ -412,10 +434,10 @@ export function AudioStudioProject() {
     if (!wavesurferRef.current) {
       console.log("🚀 Initializing WaveSurfer for first upload...");
       initializeWaveSurfer();
-      
+
       // Wait a moment for initialization
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       if (!wavesurferRef.current) {
         console.error("❌ WaveSurfer failed to initialize");
         alert(
@@ -535,6 +557,9 @@ export function AudioStudioProject() {
       }
 
       setUploadProgress(100);
+
+      // Refresh project list to show updated project
+      refreshProjectList();
 
       console.log("✅ Audio upload complete!");
 
@@ -799,13 +824,15 @@ export function AudioStudioProject() {
     if (!wavesurferRef.current) {
       console.log("🚀 Initializing WaveSurfer for AI-generated audio...");
       initializeWaveSurfer();
-      
+
       // Wait a moment for initialization
-      await new Promise(resolve => setTimeout(resolve, 100));
-      
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       if (!wavesurferRef.current) {
         console.error("❌ WaveSurfer failed to initialize");
-        alert("Audio player failed to initialize. Please try refreshing the page.");
+        alert(
+          "Audio player failed to initialize. Please try refreshing the page."
+        );
         return;
       }
     }
@@ -849,6 +876,9 @@ export function AudioStudioProject() {
         setHasUnsavedChanges(false);
         console.log("✅ Project updated with AI-generated audio");
       }
+
+      // Refresh project list to show updated project
+      refreshProjectList();
     } catch (error) {
       console.error("Error loading AI audio:", error);
       alert("Failed to load AI-generated audio");
@@ -873,9 +903,9 @@ export function AudioStudioProject() {
     setShowMintPackager(true);
   };
 
-  // Mint NFT handler
+  // Mint NFT handler with Bonding Curve
   const handleMintNFT = async (packagedData: PackagedNFTData) => {
-    console.log("🚀 Minting NFT with data:", packagedData);
+    console.log("🚀 Minting NFT with Bonding Curve:", packagedData);
 
     if (!address) {
       alert("Please connect your wallet first");
@@ -888,8 +918,10 @@ export function AudioStudioProject() {
     }
 
     try {
-      // Import the wallet-based minting service
-      const { mintNFTWithWallet } = await import("@/lib/wallet-mint-service");
+      // Import the bonding curve minting service
+      const { mintNFTWithBondingCurve } = await import(
+        "@/lib/bonding-curve-wallet-mint"
+      );
       const { uploadAsset } = await import("@/lib/nft-mint-client");
 
       // Upload cover image if it exists and is a data URL
@@ -907,8 +939,8 @@ export function AudioStudioProject() {
         coverImageUrl = uploadResult.url;
       }
 
-      // Mint the NFT using connected wallet
-      const result = await mintNFTWithWallet(
+      // Mint the NFT using bonding curve pricing
+      const result = await mintNFTWithBondingCurve(
         {
           name: packagedData.name,
           symbol: packagedData.symbol,
@@ -932,7 +964,11 @@ export function AudioStudioProject() {
       );
 
       alert(
-        `🎉 NFT "${packagedData.name}" minted successfully!\n\nMint: ${result.mint}\n\nView on Solscan: ${result.explorerUrl}`
+        `🎉 NFT "${packagedData.name}" minted successfully!\n\n` +
+          `Edition: #${result.editionNumber}\n` +
+          `Price: ${result.bondingCurvePrice.toFixed(4)} SOL\n` +
+          `Mint: ${result.mint}\n\n` +
+          `View on Solscan: ${result.explorerUrl}`
       );
 
       // Open explorer in new tab
@@ -981,6 +1017,7 @@ export function AudioStudioProject() {
         >
           <div className="w-80 h-full overflow-y-auto">
             <ProjectList
+              key={projectListKey}
               type="audio"
               onSelectProject={handleSelectProject}
               currentProjectId={project?.id}
@@ -1024,9 +1061,7 @@ export function AudioStudioProject() {
               {/* Upload */}
               <button
                 onClick={uploadAudio}
-                disabled={
-                  isUploading || !address || !project
-                }
+                disabled={isUploading || !address || !project}
                 className="flex items-center gap-2 px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 title={
                   !address
@@ -1198,15 +1233,9 @@ export function AudioStudioProject() {
               {!isLoaded && !isUploading && (
                 <div
                   className={`flex items-center justify-center h-[150px] text-muted-foreground ${
-                    address && project
-                      ? "cursor-pointer"
-                      : "cursor-not-allowed"
+                    address && project ? "cursor-pointer" : "cursor-not-allowed"
                   }`}
-                  onClick={
-                    address && project
-                      ? uploadAudio
-                      : undefined
-                  }
+                  onClick={address && project ? uploadAudio : undefined}
                 >
                   <div className="text-center">
                     <Upload size={48} className="mx-auto mb-4 opacity-50" />

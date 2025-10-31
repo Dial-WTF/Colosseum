@@ -38,7 +38,24 @@ function generateId(): string {
 }
 
 export class ProjectRepository {
-  constructor(private worm: S3Worm) {}
+  constructor(private worm: S3Worm | null) {}
+  
+  /**
+   * Check if storage is available
+   */
+  private isStorageAvailable(): boolean {
+    return this.worm !== null;
+  }
+  
+  /**
+   * Require storage to be available
+   */
+  private requireStorage(): S3Worm {
+    if (!this.worm) {
+      throw new Error('Storage is not configured. Please set up Storj configuration.');
+    }
+    return this.worm;
+  }
 
   /**
    * Get user projects entity
@@ -49,8 +66,9 @@ export class ProjectRepository {
     const path = entity.getPath();
 
     try {
+      const worm = this.requireStorage();
       // Note: S3Worm API compatibility - using any cast for getBytes
-      const data = await (this.worm as any).getBytes?.(path);
+      const data = await (worm as any).getBytes?.(path);
       if (!data) return entity;
       const json = uint8ArrayToString(new Uint8Array(data));
       const parsed = JSON.parse(json);
@@ -68,10 +86,11 @@ export class ProjectRepository {
    * Save projects entity
    */
   async saveProjects(projects: UserProjects): Promise<void> {
+    const worm = this.requireStorage();
     const path = projects.getPath();
     const json = JSON.stringify(projects, null, 2);
     const data = stringToUint8Array(json);
-    await this.worm.putBytes(path, data, 'application/json');
+    await worm.putBytes(path, data, 'application/json');
   }
 
   /**
@@ -81,6 +100,7 @@ export class ProjectRepository {
     address: string,
     input: CreateProjectInput
   ): Promise<Project> {
+    console.log('🚀 Creating project in Storj:', { address, name: input.name, type: input.type });
     const projects = await this.getProjects(address);
 
     const now = Date.now();
@@ -98,6 +118,7 @@ export class ProjectRepository {
 
     projects.addProject(project);
     await this.saveProjects(projects);
+    console.log('✅ Project saved to Storj:', { id: project.id, name: project.name });
 
     return project;
   }
@@ -122,7 +143,9 @@ export class ProjectRepository {
    * Get projects formatted for grid view
    */
   async getProjectsForGrid(address: string): Promise<ProjectGridItem[]> {
+    console.log('📋 Fetching projects from Storj for address:', address);
     const allProjects = await this.getAllProjects(address);
+    console.log('📋 Found projects:', allProjects.length);
     return allProjects.map((project) => ({
       id: project.id,
       name: project.name,

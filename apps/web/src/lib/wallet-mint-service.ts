@@ -53,11 +53,14 @@ export interface MintProgress {
 }
 
 /**
- * Get Solana connection
+ * Get Solana connection with better error handling
  */
 function getConnection(): Connection {
-  const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-  return new Connection(rpcUrl, 'confirmed');
+  const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+  return new Connection(rpcUrl, {
+    commitment: 'confirmed',
+    confirmTransactionInitialTimeout: 60000, // 60 seconds
+  });
 }
 
 /**
@@ -125,15 +128,33 @@ async function checkWalletBalance(
   publicKey: PublicKey,
   nftType: 'master-edition' | 'sft' | 'cnft'
 ): Promise<{ sufficient: boolean; balance: number; required: number }> {
-  const balance = await connection.getBalance(publicKey);
-  const balanceInSol = balance / 1_000_000_000;
-  const requiredSol = estimateWalletMintFee(nftType);
+  try {
+    // Try multiple times with exponential backoff
+    let lastError: Error | null = null;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const balance = await connection.getBalance(publicKey);
+        const balanceInSol = balance / 1_000_000_000;
+        const requiredSol = estimateWalletMintFee(nftType);
 
-  return {
-    sufficient: balanceInSol >= requiredSol,
-    balance: balanceInSol,
-    required: requiredSol,
-  };
+        return {
+          sufficient: balanceInSol >= requiredSol,
+          balance: balanceInSol,
+          required: requiredSol,
+        };
+      } catch (err) {
+        lastError = err as Error;
+        console.warn(`⚠️ Balance check attempt ${attempt + 1} failed:`, err);
+        if (attempt < 2) {
+          await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+        }
+      }
+    }
+    throw lastError;
+  } catch (error) {
+    console.error('❌ Failed to get wallet balance after retries:', error);
+    throw error;
+  }
 }
 
 /**
@@ -178,21 +199,54 @@ export async function mintNFTWithWallet(
     const connection = getConnection();
     const metaplex = getMetaplex(connection, wallet);
 
+    // Detect network from RPC URL
+    const rpcUrl = connection.rpcEndpoint;
+    const isDevnet = rpcUrl.includes('devnet');
+    const isMainnet = rpcUrl.includes('mainnet');
+    const network = isDevnet ? 'devnet' : isMainnet ? 'mainnet-beta' : 'unknown';
+    
+    console.log('🌐 Network detected:', network, '| RPC:', rpcUrl);
+
     // Check wallet balance
     console.log('💰 Checking wallet balance...');
-    const balanceCheck = await checkWalletBalance(
-      connection,
-      wallet.publicKey,
-      params.nftType
-    );
-
-    console.log(`Wallet balance: ${balanceCheck.balance.toFixed(4)} SOL`);
-    console.log(`Required: ${balanceCheck.required.toFixed(4)} SOL`);
-
-    // If insufficient balance and on devnet, request airdrop
-    if (!balanceCheck.sufficient) {
-      const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet';
+    let balanceCheck: { sufficient: boolean; balance: number; required: number };
+    
+    try {
+      balanceCheck = await checkWalletBalance(
+        connection,
+        wallet.publicKey,
+        params.nftType
+      );
+      console.log(`✅ Wallet balance: ${balanceCheck.balance.toFixed(4)} SOL`);
+      console.log(`📊 Required: ${balanceCheck.required.toFixed(4)} SOL`);
+    } catch (balanceError) {
+      console.error('❌ Failed to check balance:', balanceError);
       
+      // On mainnet, this is a critical error - don't proceed
+      if (network === 'mainnet-beta') {
+        throw new Error(
+          `Unable to check wallet balance on mainnet. This could be due to:\n\n` +
+          `1. RPC endpoint rate limiting or issues\n` +
+          `2. Network connectivity problems\n` +
+          `3. Wallet account not initialized\n\n` +
+          `Please try again in a moment. If the issue persists, try using a different RPC endpoint.\n\n` +
+          `Wallet: ${wallet.publicKey.toBase58()}\n` +
+          `Error: ${balanceError instanceof Error ? balanceError.message : 'Unknown error'}`
+        );
+      }
+      
+      // On devnet, assume 0 balance and try airdrop
+      console.warn('⚠️ Failed to check balance on devnet, assuming 0 balance');
+      const requiredSol = estimateWalletMintFee(params.nftType);
+      balanceCheck = {
+        sufficient: false,
+        balance: 0,
+        required: requiredSol,
+      };
+    }
+
+    // If insufficient balance, handle based on network
+    if (!balanceCheck.sufficient) {
       if (network === 'devnet') {
         onProgress?.({
           step: 'uploading',
@@ -203,17 +257,27 @@ export async function mintNFTWithWallet(
         try {
           await airdropDevnetSol(connection, wallet.publicKey, 2);
           console.log('✅ Airdrop successful!');
+          
+          // Wait a moment for the airdrop to be processed
+          await new Promise(resolve => setTimeout(resolve, 2000));
         } catch (airdropError) {
+          console.error('❌ Airdrop failed:', airdropError);
           throw new Error(
-            `Insufficient balance (${balanceCheck.balance.toFixed(4)} SOL) and airdrop failed. ` +
-            `Please manually airdrop SOL to your wallet: solana airdrop 2 ${wallet.publicKey.toBase58()}`
+            `Wallet has insufficient balance (${balanceCheck.balance.toFixed(4)} SOL) and automatic airdrop failed. ` +
+            `Please manually request devnet SOL:\n\n` +
+            `Option 1: Run in terminal: solana airdrop 2 ${wallet.publicKey.toBase58()} --url devnet\n` +
+            `Option 2: Visit https://faucet.solana.com/ and request SOL for ${wallet.publicKey.toBase58()}\n\n` +
+            `Error: ${airdropError instanceof Error ? airdropError.message : 'Unknown error'}`
           );
         }
       } else {
         throw new Error(
-          `Insufficient balance: ${balanceCheck.balance.toFixed(4)} SOL. ` +
-          `Required: ${balanceCheck.required.toFixed(4)} SOL. ` +
-          `Please add SOL to your wallet (${wallet.publicKey.toBase58()}) to continue.`
+          `❌ Insufficient SOL Balance\n\n` +
+          `Current: ${balanceCheck.balance.toFixed(4)} SOL\n` +
+          `Required: ${balanceCheck.required.toFixed(4)} SOL\n` +
+          `Needed: ${(balanceCheck.required - balanceCheck.balance).toFixed(4)} SOL\n\n` +
+          `Please add more SOL to your wallet to cover minting costs.\n` +
+          `Wallet: ${wallet.publicKey.toBase58()}`
         );
       }
     }
@@ -308,9 +372,10 @@ export async function mintNFTWithWallet(
     // Get the transaction signature from the NFT
     const signature = nft.mint.address.toString(); // This is a placeholder, actual signature would be from the transaction
 
-    // Build explorer URL
-    const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet';
-    const explorerUrl = `https://solscan.io/token/${nft.mint.address.toString()}?cluster=${network}`;
+    // Build explorer URL based on detected network
+    const explorerUrl = network === 'mainnet-beta' 
+      ? `https://solscan.io/token/${nft.mint.address.toString()}`
+      : `https://solscan.io/token/${nft.mint.address.toString()}?cluster=${network}`;
 
     // Get token account address (handle different Metaplex versions)
     const tokenAccount = (nft as any).token?.address?.toString() || 
