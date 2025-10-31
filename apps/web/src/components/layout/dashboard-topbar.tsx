@@ -1,7 +1,7 @@
 'use client';
 
 import { Bell, Search, HelpCircle } from 'lucide-react';
-import { PrivyWalletButton } from '#/components/wallet/privy-wallet-button';
+import { SolanaWalletButton } from '#/components/wallet/solana-wallet-button';
 
 export function DashboardTopBar() {
   return (
@@ -38,7 +38,7 @@ export function DashboardTopBar() {
 
           <div className="h-8 w-px bg-border"></div>
 
-          <PrivyWalletButton />
+          <SolanaWalletButton />
         </div>
       </div>
     </header>

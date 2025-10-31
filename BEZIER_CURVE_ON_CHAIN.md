@@ -37,6 +37,7 @@ Piecewise Bezier curves integrated into the Solana bonding curve program.
 ## 🎨 Bezier Curve Types
 
 ### Simple Bezier (Linear Alternative)
+
 ```typescript
 {
   segments: [{
@@ -51,6 +52,7 @@ Piecewise Bezier curves integrated into the Solana bonding curve program.
 ```
 
 ### S-Curve (Slow Start, Fast Middle, Slow End)
+
 ```typescript
 {
   segments: [{
@@ -65,6 +67,7 @@ Piecewise Bezier curves integrated into the Solana bonding curve program.
 ```
 
 ### Multi-Segment (Early Bird + FOMO + Final Push)
+
 ```typescript
 {
   segments: [
@@ -102,6 +105,7 @@ Piecewise Bezier curves integrated into the Solana bonding curve program.
 ### 1. Solana Program (Rust)
 
 **New State Account**: `BezierPriceLookup`
+
 ```rust
 pub struct BezierPriceLookup {
     pub bonding_curve: Pubkey,    // Associated bonding curve
@@ -111,10 +115,12 @@ pub struct BezierPriceLookup {
 ```
 
 **New Instructions**:
+
 1. `initialize_bezier_lookup` - Store pre-calculated prices
 2. `mint_edition_with_bezier_lookup` - Mint using lookup table
 
 **Storage Strategy**:
+
 - Max 1000 prices per account (8KB limit)
 - For larger collections, use multiple lookup accounts
 - Prices stored as `u64` lamports (exact)
@@ -122,6 +128,7 @@ pub struct BezierPriceLookup {
 ### 2. TypeScript SDK
 
 **New Functions**:
+
 ```typescript
 // Pre-calculate all prices using Bezier evaluation
 client.initializeBezierLookup(
@@ -141,6 +148,7 @@ client.mintEditionWithBezierLookup({
 ```
 
 **Price Calculation**:
+
 - Uses `@dial/bonding-curve` package
 - Evaluates piecewise Bezier curves
 - Handles multi-segment curves
@@ -149,13 +157,14 @@ client.mintEditionWithBezierLookup({
 ### 3. Integration with Existing System
 
 **Bonding Curve Config** now supports:
+
 ```typescript
 interface BondingCurveConfig {
-  type: 'linear' | 'exponential' | 'logarithmic' | 'bezier';
+  type: "linear" | "exponential" | "logarithmic" | "bezier";
   basePrice: number;
   priceIncrement: number;
   maxSupply: number;
-  bezierCurve?: BezierCurveData;  // ✨ New
+  bezierCurve?: BezierCurveData; // ✨ New
 }
 ```
 
@@ -166,20 +175,20 @@ interface BondingCurveConfig {
 ### Step 1: Design Curve in UI
 
 ```typescript
-import { BezierCurveEditor } from '~/mint/bezier-curve-editor';
+import { BezierCurveEditor } from "~/mint/bezier-curve-editor";
 
 <BezierCurveEditor
   value={bezierCurve}
   onChange={setBezierCurve}
   minPrice={0.1}
   maxPrice={10}
-/>
+/>;
 ```
 
 ### Step 2: Initialize Collection with Bezier
 
 ```typescript
-import { initializeCollectionWithCurve } from '@/lib/bonding-curve-mint-service';
+import { initializeCollectionWithCurve } from "@/lib/bonding-curve-mint-service";
 
 const collection = await initializeCollectionWithCurve(
   {
@@ -193,7 +202,9 @@ const collection = await initializeCollectionWithCurve(
       priceIncrement: 0, // Not used for Bezier
       maxSupply: 100,
       bezierCurve: {
-        segments: [/* ... */],
+        segments: [
+          /* ... */
+        ],
         minPrice: 0.1,
         maxPrice: 10,
       },
@@ -206,7 +217,7 @@ const collection = await initializeCollectionWithCurve(
 ### Step 3: Initialize Price Lookup
 
 ```typescript
-import { BondingCurveClient } from '@dial/bonding-curve-program';
+import { BondingCurveClient } from "@dial/bonding-curve-program";
 
 const client = new BondingCurveClient(connection);
 
@@ -241,22 +252,22 @@ await sendAndConfirmTransaction(connection, mintTx, [buyerKeypair]);
 
 ### S-Curve (0.05 - 5 SOL)
 
-| Edition | Price (SOL) | % of Max | Notes |
-|---------|-------------|----------|-------|
-| 1       | 0.05        | 0%       | Cheap start |
+| Edition | Price (SOL) | % of Max | Notes            |
+| ------- | ----------- | -------- | ---------------- |
+| 1       | 0.05        | 0%       | Cheap start      |
 | 10      | 0.08        | 3%       | Still affordable |
-| 25      | 0.25        | 16%      | Ramp begins |
-| 50      | 2.50        | 49%      | Steep middle |
-| 75      | 4.75        | 94%      | Expensive |
-| 100     | 5.00        | 100%     | Max price |
+| 25      | 0.25        | 16%      | Ramp begins      |
+| 50      | 2.50        | 49%      | Steep middle     |
+| 75      | 4.75        | 94%      | Expensive        |
+| 100     | 5.00        | 100%     | Max price        |
 
 ### Multi-Segment Strategy
 
-| Phase | Editions | Price Range | Strategy |
-|-------|----------|-------------|----------|
-| Early Bird | 1-25 | 0.1 - 0.3 SOL | Reward early adopters |
-| FOMO | 26-75 | 0.3 - 3 SOL | Create urgency |
-| Final Push | 76-100 | 3 - 20 SOL | Exclusivity for late buyers |
+| Phase      | Editions | Price Range   | Strategy                    |
+| ---------- | -------- | ------------- | --------------------------- |
+| Early Bird | 1-25     | 0.1 - 0.3 SOL | Reward early adopters       |
+| FOMO       | 26-75    | 0.3 - 3 SOL   | Create urgency              |
+| Final Push | 76-100   | 3 - 20 SOL    | Exclusivity for late buyers |
 
 ---
 
@@ -285,12 +296,12 @@ let price = lookup.prices.get(edition_idx)
 ### Off-Chain Validation
 
 ```typescript
-import { validateBezierCurve } from '@dial/bonding-curve';
+import { validateBezierCurve } from "@dial/bonding-curve";
 
 const validation = validateBezierCurve(bezierCurveData);
 
 if (!validation.valid) {
-  console.error('Invalid Bezier curve:', validation.errors);
+  console.error("Invalid Bezier curve:", validation.errors);
 }
 ```
 
@@ -305,11 +316,15 @@ if (!validation.valid) {
 **How**: Use `@dial/bonding-curve` package to pre-calculate all prices
 
 ```typescript
-import { calculateBezierPrice } from '@dial/bonding-curve';
+import { calculateBezierPrice } from "@dial/bonding-curve";
 
 const prices: number[] = [];
 for (let edition = 1; edition <= maxSupply; edition++) {
-  const priceDecimal = calculateBezierPrice(edition, maxSupply, bezierCurveData);
+  const priceDecimal = calculateBezierPrice(
+    edition,
+    maxSupply,
+    bezierCurveData
+  );
   prices.push(priceDecimal.toNumber());
 }
 ```
@@ -321,7 +336,7 @@ Use the Bezier curve editor to see the pricing:
 ```typescript
 <BondingCurveChart
   curveConfig={{
-    type: 'bezier',
+    type: "bezier",
     bezierCurve: bezierCurveData,
     maxSupply: 100,
   }}
@@ -414,12 +429,14 @@ Cheap for masses, expensive for final editions:
 ## 🔮 Future Enhancements
 
 ### Phase 2
+
 - [ ] Dynamic curve updates (time-based)
 - [ ] Curve templates library
 - [ ] AI-generated curves based on goals
 - [ ] Multi-account lookup for huge collections
 
 ### Phase 3
+
 - [ ] On-chain Bezier evaluation (if compute allows)
 - [ ] Compressed lookup tables
 - [ ] Curve analytics dashboard
@@ -429,12 +446,14 @@ Cheap for masses, expensive for final editions:
 ## 📚 Resources
 
 ### Code References
+
 - `programs/bonding-curve/src/lib.rs` - Solana program
 - `packages/bonding-curve-program/src/index.ts` - TypeScript SDK
 - `packages/bonding-curve/src/bezier.ts` - Bezier evaluation
 - `apps/web/src/components/mint/bezier-curve-editor.tsx` - UI editor
 
 ### External Resources
+
 - [Cubic Bezier Curves](https://en.wikipedia.org/wiki/B%C3%A9zier_curve)
 - [Bezier.js Library](https://pomax.github.io/bezierjs/)
 - [Newton-Raphson Method](https://en.wikipedia.org/wiki/Newton%27s_method)
@@ -444,6 +463,7 @@ Cheap for masses, expensive for final editions:
 ## ✅ Implementation Checklist
 
 ### Solana Program
+
 - [x] Add `CurveType::Bezier` enum variant
 - [x] Add `BezierPriceLookup` account
 - [x] Implement `initialize_bezier_lookup` instruction
@@ -453,6 +473,7 @@ Cheap for masses, expensive for final editions:
 - [ ] Test with real transactions
 
 ### TypeScript SDK
+
 - [x] Add Bezier types and interfaces
 - [x] Implement `initializeBezierLookup` function
 - [x] Implement `mintEditionWithBezierLookup` function
@@ -461,6 +482,7 @@ Cheap for masses, expensive for final editions:
 - [ ] Build and test
 
 ### UI Integration
+
 - [x] Bezier curve editor component exists
 - [ ] Wire editor to minting flow
 - [ ] Add preview of Bezier pricing
@@ -472,10 +494,10 @@ Cheap for masses, expensive for final editions:
 **You now have full Bezier curve support on-chain!** 🎨📈
 
 This enables completely custom pricing strategies:
+
 - ✅ Design any pricing curve visually
 - ✅ Pre-calculate and store on-chain
 - ✅ Trustlessly enforce custom pricing
 - ✅ Create sophisticated pricing strategies
 
 **Next**: Test on devnet and mint your first Bezier-priced NFT! 🚀
-

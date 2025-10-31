@@ -1,6 +1,6 @@
 /**
  * Project Service
- * Wraps the worm ProjectRepository with user context from Privy
+ * Wraps the worm ProjectRepository with user context from Solana Wallet
  * Falls back to localStorage when Storj is not configured
  */
 
@@ -19,7 +19,7 @@ import { projectStorage as localStorageService } from './project-storage';
 
 /**
  * Get the current user's wallet address
- * This should be called from components that have access to Privy
+ * This should be called from components that have access to the wallet
  */
 let currentUserAddress: string | null = null;
 

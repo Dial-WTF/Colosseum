@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { Phone } from 'lucide-react';
-import { PrivyWalletButton } from '#/components/wallet/privy-wallet-button';
+import { SolanaWalletButton } from '#/components/wallet/solana-wallet-button';
 
 export function Header() {
   return (
@@ -14,6 +14,9 @@ export function Header() {
         </Link>
 
         <nav className="hidden md:flex items-center space-x-6">
+          <Link href="/feed" className="text-sm font-medium hover:text-primary transition-colors">
+            Feed
+          </Link>
           <Link href="/marketplace" className="text-sm font-medium hover:text-primary transition-colors">
             Marketplace
           </Link>
@@ -31,7 +34,7 @@ export function Header() {
           </Link>
         </nav>
 
-        <PrivyWalletButton />
+        <SolanaWalletButton />
       </div>
     </header>
   );

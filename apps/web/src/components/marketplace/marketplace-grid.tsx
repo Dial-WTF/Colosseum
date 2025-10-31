@@ -1,15 +1,23 @@
 'use client';
 
+import { ExternalLink } from 'lucide-react';
+import { openTensorItem } from '@/lib/tensor-utils';
+
 export function MarketplaceGrid() {
   // Mock data - will be replaced with real data from Solana
   const mockListings = Array.from({ length: 12 }, (_, i) => ({
     id: i + 1,
+    mint: `mock-mint-${i + 1}`,
     name: `Ringtone Pack #${i + 1}`,
     edition: `${i + 1}/100`,
     price: (0.5 + Math.random()).toFixed(2),
     lastSale: (0.3 + Math.random() * 0.5).toFixed(2),
     image: ['🎵', '📞', '🔮', '👑'][i % 4],
   }));
+
+  const handleTrade = (mint: string) => {
+    openTensorItem(mint);
+  };
 
   return (
     <div>
@@ -29,7 +37,7 @@ export function MarketplaceGrid() {
         {mockListings.map((listing) => (
           <div
             key={listing.id}
-            className="bg-secondary rounded-lg p-4 hover:bg-secondary/70 transition-colors cursor-pointer border border-transparent hover:border-primary"
+            className="bg-secondary rounded-lg p-4 border border-transparent hover:border-primary transition-all duration-200 group"
           >
             <div className="aspect-square bg-muted rounded-lg mb-3 flex items-center justify-center text-6xl">
               {listing.image}
@@ -38,7 +46,7 @@ export function MarketplaceGrid() {
             <p className="text-sm text-muted-foreground mb-3">
               Edition {listing.edition}
             </p>
-            <div className="flex items-center justify-between pt-3 border-t border-border">
+            <div className="flex items-center justify-between pt-3 border-t border-border mb-3">
               <div>
                 <p className="text-xs text-muted-foreground">Current Price</p>
                 <p className="font-semibold text-primary">{listing.price} SOL</p>
@@ -48,6 +56,15 @@ export function MarketplaceGrid() {
                 <p className="text-sm">{listing.lastSale} SOL</p>
               </div>
             </div>
+            
+            {/* Trade on Tensor Button */}
+            <button
+              onClick={() => handleTrade(listing.mint)}
+              className="w-full flex items-center justify-center gap-2 px-4 py-2 bg-primary hover:bg-primary/90 rounded-lg font-semibold transition-colors"
+            >
+              <span>Trade on Tensor</span>
+              <ExternalLink className="w-4 h-4" />
+            </button>
           </div>
         ))}
       </div>

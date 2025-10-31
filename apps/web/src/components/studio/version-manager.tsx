@@ -23,6 +23,7 @@ interface VersionManagerProps {
   onDeleteVersion: (versionId: string) => Promise<void>;
   onRenameVersion: (versionId: string, newName: string) => Promise<void>;
   isSaving?: boolean;
+  alwaysExpanded?: boolean;
 }
 
 export function VersionManager({
@@ -33,8 +34,9 @@ export function VersionManager({
   onDeleteVersion,
   onRenameVersion,
   isSaving = false,
+  alwaysExpanded = false,
 }: VersionManagerProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isExpanded, setIsExpanded] = useState(alwaysExpanded);
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [versionName, setVersionName] = useState('');
   const [versionNotes, setVersionNotes] = useState('');
@@ -91,9 +93,9 @@ export function VersionManager({
   const sortedVersions = [...project.versions].sort((a, b) => b.versionNumber - a.versionNumber);
 
   return (
-    <div className="bg-card border border-border rounded-lg overflow-hidden">
+    <div className="bg-card border border-border rounded-lg overflow-hidden h-full flex flex-col">
       {/* Header */}
-      <div className="flex items-center justify-between p-4 border-b border-border">
+      <div className="flex items-center justify-between p-4 border-b border-border flex-shrink-0">
         <div className="flex items-center gap-3">
           <GitBranch size={20} className="text-primary" />
           <div>
@@ -113,18 +115,20 @@ export function VersionManager({
             <Save size={16} />
             {isSaving ? 'Saving...' : 'Save Version'}
           </button>
-          <button
-            onClick={() => setIsExpanded(!isExpanded)}
-            className="p-2 hover:bg-muted rounded transition-colors"
-          >
-            {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
-          </button>
+          {!alwaysExpanded && (
+            <button
+              onClick={() => setIsExpanded(!isExpanded)}
+              className="p-2 hover:bg-muted rounded transition-colors"
+            >
+              {isExpanded ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Version List */}
-      {isExpanded && (
-        <div className="max-h-96 overflow-y-auto">
+      {(isExpanded || alwaysExpanded) && (
+        <div className="flex-1 overflow-y-auto">
           {sortedVersions.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <GitBranch size={32} className="mx-auto mb-2 opacity-50" />

@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server';
-import { getWormClient, getPublicUrl } from '@dial/worm';
+import { getWormClient, getPublicUrl, listObjects } from '@dial/worm';
 
 export interface Asset {
   url: string;
@@ -34,12 +34,10 @@ export async function GET(request: NextRequest) {
     }
 
     // List all files in the user's workspace assets folder
-    const worm = getWormClient();
     const prefix = `users/${address}/assets/${workspace}/`;
     
-    // Use the underlying S3 client to list objects
-    // S3Worm wraps the S3 client, so we access it via the worm instance
-    const files = await (worm as any).listObjects?.(prefix) || [];
+    // List objects using the worm client helper
+    const files = await listObjects(prefix);
 
     // Transform file list into asset objects
     const assets: Asset[] = files.map((file) => {

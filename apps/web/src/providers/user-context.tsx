@@ -6,7 +6,7 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { usePrivy, useWallets } from '@privy-io/react-auth';
+import { useWallet } from '@solana/wallet-adapter-react';
 import { setCurrentUserAddress } from '@/lib/project-service';
 
 interface UserProfile {
@@ -51,14 +51,19 @@ interface UserProviderProps {
 }
 
 export function UserProvider({ children }: UserProviderProps) {
-  const { user, authenticated, ready } = usePrivy();
-  const { wallets } = useWallets();
+  const { publicKey, connected, connecting } = useWallet();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [isLoadingProfile, setIsLoadingProfile] = useState(false);
 
-  // Extract Solana wallet address from Privy user
-  const solanaWallet = wallets.find((wallet) => wallet.walletClientType === 'solana');
-  const address = solanaWallet?.address || null;
+  // Get Solana wallet address
+  const address = publicKey?.toBase58() || null;
+
+  // Debug logging to help troubleshoot wallet detection
+  console.log('🔍 Wallet Detection:', {
+    connected,
+    connecting,
+    address: address ? address.substring(0, 8) + '...' : 'NOT CONNECTED',
+  });
 
   // Sync address with project service
   useEffect(() => {
@@ -87,15 +92,15 @@ export function UserProvider({ children }: UserProviderProps) {
   };
 
   useEffect(() => {
-    if (authenticated && address) {
+    if (connected && address) {
       loadProfile();
     }
-  }, [authenticated, address]);
+  }, [connected, address]);
 
   const value: UserContextValue = {
     address,
-    isAuthenticated: authenticated,
-    isLoading: !ready,
+    isAuthenticated: connected,
+    isLoading: connecting,
     profile,
     isLoadingProfile,
     refreshProfile: loadProfile,
