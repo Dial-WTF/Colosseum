@@ -8,9 +8,13 @@ import type {
   ImageProjectData,
   AudioProjectData,
 } from '@dial/types';
+import { indexedDBStorage } from './indexed-db-storage';
 
 const STORAGE_KEY_PREFIX = 'dial_studio_projects';
 const STORAGE_VERSION = '1.0';
+
+// Max size for data stored in localStorage (5MB, conservative limit)
+const MAX_LOCALSTORAGE_SIZE = 5 * 1024 * 1024;
 
 // Storage metadata
 interface StorageMetadata {
@@ -166,6 +170,12 @@ class ProjectStorageService {
 
     const deleted = this.cache.delete(id);
     if (deleted) {
+      // Clean up IndexedDB files for this project
+      try {
+        await indexedDBStorage.deleteProjectFiles(id);
+      } catch (error) {
+        console.warn('Failed to delete project files from IndexedDB:', error);
+      }
       this.persist();
     }
 
@@ -186,11 +196,14 @@ class ProjectStorageService {
     const now = Date.now();
     const versionNumber = project.versions.length + 1;
 
+    // Handle large data (audio/image) by storing in IndexedDB
+    const processedData = await this.processLargeData(input.projectId, input.data);
+
     const version: ProjectVersion = {
       id: this.generateId(),
       name: input.name,
       versionNumber,
-      data: input.data,
+      data: processedData,
       thumbnail: input.thumbnail,
       createdAt: now,
       updatedAt: now,
@@ -206,7 +219,19 @@ class ProjectStorageService {
     };
 
     this.cache.set(project.id, updated);
-    this.persist();
+    
+    try {
+      this.persist();
+    } catch (error) {
+      // If persist fails due to quota, clean up and retry
+      if (error instanceof Error && error.message.includes('quota')) {
+        console.warn('⚠️ localStorage quota exceeded, attempting cleanup...');
+        await this.cleanupOldData();
+        this.persist();
+      } else {
+        throw error;
+      }
+    }
 
     return version;
   }
@@ -227,9 +252,15 @@ class ProjectStorageService {
     const versionIndex = project.versions.findIndex((v) => v.id === versionId);
     if (versionIndex === -1) return null;
 
+    // Process large data if updating data field
+    const processedData = data.data 
+      ? await this.processLargeData(projectId, data.data)
+      : undefined;
+
     const updated = {
       ...project.versions[versionIndex],
       ...data,
+      data: processedData !== undefined ? processedData : project.versions[versionIndex].data,
       updatedAt: Date.now(),
     };
 
@@ -243,7 +274,19 @@ class ProjectStorageService {
     };
 
     this.cache.set(projectId, updatedProject);
-    this.persist();
+    
+    try {
+      this.persist();
+    } catch (error) {
+      // If persist fails due to quota, clean up and retry
+      if (error instanceof Error && error.message.includes('quota')) {
+        console.warn('⚠️ localStorage quota exceeded, attempting cleanup...');
+        await this.cleanupOldData();
+        this.persist();
+      } else {
+        throw error;
+      }
+    }
 
     return updated;
   }
@@ -449,7 +492,23 @@ class ProjectStorageService {
   }
 
   private saveToStorage(data: ProjectStorage): void {
-    localStorage.setItem(this.getStorageKey(), JSON.stringify(data));
+    try {
+      const jsonStr = JSON.stringify(data);
+      
+      // Check size before saving
+      if (jsonStr.length > MAX_LOCALSTORAGE_SIZE) {
+        throw new Error('Data exceeds localStorage quota limit');
+      }
+      
+      localStorage.setItem(this.getStorageKey(), jsonStr);
+    } catch (error) {
+      if (error instanceof Error && 
+          (error.message.includes('quota') || error.message.includes('QuotaExceededError'))) {
+        console.error('❌ localStorage quota exceeded');
+        throw new Error('Storage quota exceeded. Please try deleting old projects.');
+      }
+      throw error;
+    }
   }
 
   private persist(): void {
@@ -462,6 +521,142 @@ class ProjectStorageService {
       metadata: this.getMetadata(),
       projects,
     });
+  }
+
+  /**
+   * Process large data (audio/image URLs) by storing in IndexedDB
+   * Returns reference ID for IndexedDB or original data if small enough
+   */
+  private async processLargeData(projectId: string, data: any): Promise<any> {
+    if (!data) return data;
+
+    // Handle audio project data
+    if (data.type === 'audio' && data.audioUrl) {
+      const audioSize = data.audioUrl.length;
+      
+      // If audio URL is large (>1MB), store in IndexedDB
+      if (audioSize > 1024 * 1024) {
+        try {
+          const fileId = `audio_${projectId}_${Date.now()}`;
+          await indexedDBStorage.storeFile(
+            fileId,
+            projectId,
+            'audio',
+            data.audioUrl,
+            'audio/wav'
+          );
+          
+          return {
+            ...data,
+            audioUrl: `indexeddb://${fileId}`,
+            _indexedDBRef: fileId,
+          };
+        } catch (error) {
+          console.warn('Failed to store audio in IndexedDB, falling back to inline:', error);
+          return data;
+        }
+      }
+    }
+
+    // Handle image project data
+    if (data.type === 'image' && data.exportUrl) {
+      const imageSize = data.exportUrl.length;
+      
+      // If export URL is large (>1MB), store in IndexedDB
+      if (imageSize > 1024 * 1024) {
+        try {
+          const fileId = `image_${projectId}_${Date.now()}`;
+          await indexedDBStorage.storeFile(
+            fileId,
+            projectId,
+            'image',
+            data.exportUrl,
+            'image/png'
+          );
+          
+          return {
+            ...data,
+            exportUrl: `indexeddb://${fileId}`,
+            _indexedDBRef: fileId,
+          };
+        } catch (error) {
+          console.warn('Failed to store image in IndexedDB, falling back to inline:', error);
+          return data;
+        }
+      }
+    }
+
+    return data;
+  }
+
+  /**
+   * Load large data from IndexedDB if it's a reference
+   */
+  private async loadLargeData(data: any): Promise<any> {
+    if (!data) return data;
+
+    // Handle audio data with IndexedDB reference
+    if (data.type === 'audio' && data.audioUrl?.startsWith('indexeddb://')) {
+      const fileId = data.audioUrl.replace('indexeddb://', '');
+      try {
+        const audioUrl = await indexedDBStorage.getFile(fileId);
+        if (audioUrl) {
+          return { ...data, audioUrl };
+        }
+      } catch (error) {
+        console.warn('Failed to load audio from IndexedDB:', error);
+      }
+    }
+
+    // Handle image data with IndexedDB reference
+    if (data.type === 'image' && data.exportUrl?.startsWith('indexeddb://')) {
+      const fileId = data.exportUrl.replace('indexeddb://', '');
+      try {
+        const exportUrl = await indexedDBStorage.getFile(fileId);
+        if (exportUrl) {
+          return { ...data, exportUrl };
+        }
+      } catch (error) {
+        console.warn('Failed to load image from IndexedDB:', error);
+      }
+    }
+
+    return data;
+  }
+
+  /**
+   * Clean up old data to free space
+   */
+  private async cleanupOldData(): Promise<void> {
+    const projects = Array.from(this.cache.values());
+    
+    // Sort by last modified (oldest first)
+    projects.sort((a, b) => a.updatedAt - b.updatedAt);
+    
+    // Remove oldest 20% of projects
+    const toRemove = Math.ceil(projects.length * 0.2);
+    for (let i = 0; i < toRemove && i < projects.length; i++) {
+      console.log('🗑️ Auto-removing old project to free space:', projects[i].name);
+      await this.deleteProject(projects[i].id);
+    }
+  }
+
+  /**
+   * Get project with large data loaded from IndexedDB
+   */
+  async getProjectWithData(id: string): Promise<Project | null> {
+    const project = await this.getProject(id);
+    if (!project) return null;
+
+    // Load large data for all versions
+    const versions = await Promise.all(
+      project.versions.map(async (version) => ({
+        ...version,
+        data: await this.loadLargeData(version.data),
+      }))
+    );
+
+    return { ...project, versions };
   }
 }
 
@@ -500,4 +695,7 @@ export const deleteVersion = (projectId: string, versionId: string) =>
 
 export const setCurrentVersion = (projectId: string, versionId: string) =>
   projectStorage.setCurrentVersion(projectId, versionId);
+
+export const getProjectWithData = (id: string) =>
+  projectStorage.getProjectWithData(id);
 
