@@ -97,6 +97,7 @@ const response = await fetch(`${SUNO_API_BASE}/generate`, {
     make_instrumental: false,
     wait_audio: true,
     tags: `${genre}, ${mood}, ${bpm} BPM`,
+    model: 'V4', // V3_5, V4, V4_5, V4_5PLUS or V5
   }),
 });
 ```

@@ -9,6 +9,7 @@ interface SunoGenerateRequest {
   wait_audio?: boolean;
   tags?: string;
   title?: string;
+  model?: string;
 }
 
 interface SunoGenerateResponse {
@@ -64,6 +65,7 @@ export async function POST(request: NextRequest) {
       make_instrumental: false, // Allow vocals for full music experience
       wait_audio: true, // Wait for audio to be generated
       tags,
+      model: 'V4', // Use V4 model for balanced quality and speed
     };
 
     console.log('🎵 Sending request to Suno API:', sunoRequest);
