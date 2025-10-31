@@ -27,6 +27,7 @@ import {
   getProject,
   updateProject as updateProjectApi,
 } from "@/lib/project-service";
+import { useSolanaWallet } from "@/hooks/use-solana-wallet";
 
 export function AudioStudioProject() {
   const router = useRouter();
@@ -60,6 +61,7 @@ export function AudioStudioProject() {
   const autoSaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const { address, profile } = useUser();
+  const solanaWallet = useSolanaWallet();
 
   // Initialize or load project
   useEffect(() => {
@@ -810,9 +812,15 @@ export function AudioStudioProject() {
       return;
     }
 
+    if (!solanaWallet.connected || !solanaWallet.publicKey) {
+      alert("Please connect your Solana wallet first");
+      return;
+    }
+
     try {
-      // Import the minting client
-      const { mintNFT, uploadAsset } = await import("@/lib/nft-mint-client");
+      // Import the wallet-based minting service
+      const { mintNFTWithWallet } = await import("@/lib/wallet-mint-service");
+      const { uploadAsset } = await import("@/lib/nft-mint-client");
 
       // Upload cover image if it exists and is a data URL
       let coverImageUrl = packagedData.coverImage;
@@ -829,20 +837,24 @@ export function AudioStudioProject() {
         coverImageUrl = uploadResult.url;
       }
 
-      // Mint the NFT
-      const result = await mintNFT(
+      // Mint the NFT using connected wallet
+      const result = await mintNFTWithWallet(
         {
           name: packagedData.name,
           symbol: packagedData.symbol,
           description: packagedData.description,
           imageUrl: coverImageUrl || "/default-nft-cover.png",
           audioUrl: packagedData.audioUrl,
-          walletAddress: address,
           nftType: packagedData.nftType,
           royaltyPercentage: packagedData.royaltyPercentage,
           bondingCurve: packagedData.bondingCurve,
           attributes: packagedData.attributes,
           tags: packagedData.tags,
+        },
+        {
+          publicKey: solanaWallet.publicKey,
+          signTransaction: solanaWallet.signTransaction,
+          signAllTransactions: solanaWallet.signAllTransactions,
         },
         (progress) => {
           console.log("Minting progress:", progress);
@@ -909,8 +921,8 @@ export function AudioStudioProject() {
         {/* Column 3: Main Editor Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Toolbar */}
-          <div className="bg-card border-b border-border p-4 overflow-x-auto">
-            <div className="flex flex-wrap items-center gap-4 min-w-max">
+          <div className="bg-card border-b border-border p-4">
+            <div className="flex flex-wrap items-center gap-4">
               {/* Panel Toggles */}
               <div className="flex items-center gap-2 px-3 py-2 bg-muted rounded-md">
                 <button

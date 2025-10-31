@@ -209,9 +209,9 @@ export function MintPackager({ audioData, initialData, onClose, onMint }: MintPa
 
   return (
     <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-card border border-border rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl">
+      <div className="bg-card border border-border rounded-xl max-w-4xl w-full max-h-[90vh] overflow-hidden shadow-2xl flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white">
+        <div className="bg-gradient-to-r from-purple-600 to-pink-600 p-6 text-white flex-shrink-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Package className="h-8 w-8" />
@@ -255,7 +255,7 @@ export function MintPackager({ audioData, initialData, onClose, onMint }: MintPa
         </div>
 
         {/* Content */}
-        <div className="p-6 overflow-y-auto max-h-[calc(90vh-200px)]">
+        <div className="p-6 overflow-y-auto flex-1 min-h-0">
           {/* Step 1: Metadata */}
           {currentStep === 'metadata' && (
             <div className="space-y-6">
@@ -650,7 +650,7 @@ export function MintPackager({ audioData, initialData, onClose, onMint }: MintPa
         </div>
 
         {/* Footer */}
-        <div className="border-t border-border p-6 bg-muted/30">
+        <div className="border-t border-border p-6 bg-muted/30 flex-shrink-0">
           <div className="flex justify-between items-center">
             <button
               onClick={() => {
