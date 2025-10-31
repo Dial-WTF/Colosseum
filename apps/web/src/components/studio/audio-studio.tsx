@@ -183,15 +183,49 @@ export function AudioStudio() {
       setSelectedRegion(null);
 
       setUploadProgress(100);
+      
+      // Close audio context to free resources
+      await audioContext.close();
+
+      // Create and save project with uploaded audio
+      try {
+        const { createProject, createVersion } = await import('@/lib/project-service');
+        
+        // Generate project name from file name
+        const fileNameWithoutExt = file.name.replace(/\.[^/.]+$/, '');
+        const projectName = fileNameWithoutExt || `Audio Upload ${Date.now()}`;
+        
+        const project = await createProject({
+          name: projectName,
+          type: 'audio',
+          description: `Uploaded audio file: ${file.name}`,
+          tags: ['uploaded'],
+        });
+        
+        // Create first version with audio data
+        await createVersion({
+          projectId: project.id,
+          name: 'v1',
+          data: {
+            type: 'audio',
+            audioUrl: url,
+            duration: audioBuffer.duration,
+            volume: 1,
+          },
+          notes: `Original file: ${file.name}\nFile size: ${(file.size / 1024 / 1024).toFixed(2)} MB\nDuration: ${audioBuffer.duration.toFixed(2)}s`,
+        });
+        
+        console.log('✅ Uploaded audio project saved:', project.id);
+      } catch (saveError) {
+        console.error('Failed to save uploaded audio project:', saveError);
+        // Don't show error to user - audio is still loaded and usable
+      }
 
       // Reset upload state after a brief delay
       setTimeout(() => {
         setIsUploading(false);
         setUploadProgress(0);
       }, 500);
-      
-      // Close audio context to free resources
-      await audioContext.close();
     } catch (error) {
       console.error('Error loading audio:', error);
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -528,17 +562,56 @@ export function AudioStudio() {
   const handleMintNFT = async (packagedData: PackagedNFTData) => {
     console.log('🚀 Minting NFT with data:', packagedData);
     
-    // TODO: Implement actual minting logic
-    // This would involve:
-    // 1. Upload audio to decentralized storage (IPFS, Arweave, etc.)
-    // 2. Upload metadata JSON
-    // 3. Create NFT on Solana using Metaplex
-    // 4. Set up bonding curve contract
-    
-    // Simulate minting delay
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    alert(`🎉 NFT "${packagedData.name}" minted successfully!`);
+    if (!address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    try {
+      // Upload cover image if it exists and is a data URL
+      let coverImageUrl = packagedData.coverImage;
+      if (coverImageUrl && coverImageUrl.startsWith('data:')) {
+        // Convert data URL to blob
+        const response = await fetch(coverImageUrl);
+        const blob = await response.blob();
+        const file = new File([blob], `${packagedData.name}-cover.png`, { type: 'image/png' });
+        
+        // Upload to storage
+        const uploadResult = await uploadAsset(file, address, 'nft-covers');
+        coverImageUrl = uploadResult.url;
+      }
+
+      // Import the minting client
+      const { mintNFT, uploadAsset } = await import('@/lib/nft-mint-client');
+
+      // Mint the NFT
+      const result = await mintNFT(
+        {
+          name: packagedData.name,
+          symbol: packagedData.symbol,
+          description: packagedData.description,
+          imageUrl: coverImageUrl || '/default-nft-cover.png',
+          audioUrl: packagedData.audioUrl,
+          walletAddress: address,
+          nftType: packagedData.nftType,
+          royaltyPercentage: packagedData.royaltyPercentage,
+          bondingCurve: packagedData.bondingCurve,
+          attributes: packagedData.attributes,
+          tags: packagedData.tags,
+        },
+        (progress) => {
+          console.log('Minting progress:', progress);
+        }
+      );
+
+      alert(`🎉 NFT "${packagedData.name}" minted successfully!\n\nMint: ${result.mint}\n\nView on Solscan: ${result.explorerUrl}`);
+      
+      // Open explorer in new tab
+      window.open(result.explorerUrl, '_blank');
+    } catch (error) {
+      console.error('Minting error:', error);
+      throw error;
+    }
   };
 
   return (

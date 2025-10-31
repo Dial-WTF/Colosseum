@@ -9,7 +9,7 @@ import type {
   AudioProjectData,
 } from '@dial/types';
 
-const STORAGE_KEY = 'dial_studio_projects';
+const STORAGE_KEY_PREFIX = 'dial_studio_projects';
 const STORAGE_VERSION = '1.0';
 
 // Storage metadata
@@ -27,10 +27,33 @@ interface ProjectStorage {
  * Project Storage Service
  * Handles all project CRUD operations with localStorage
  * Supports IndexedDB fallback for large files
+ * Now user-scoped for multi-wallet support
  */
 class ProjectStorageService {
   private cache: Map<string, Project> = new Map();
   private initialized = false;
+  private currentUserAddress: string | null = null;
+
+  /**
+   * Set the current user address for scoping storage
+   */
+  setUserAddress(address: string | null): void {
+    if (address !== this.currentUserAddress) {
+      this.currentUserAddress = address;
+      this.initialized = false;
+      this.cache.clear();
+    }
+  }
+
+  /**
+   * Get the storage key for the current user
+   */
+  private getStorageKey(): string {
+    if (!this.currentUserAddress) {
+      return `${STORAGE_KEY_PREFIX}_guest`;
+    }
+    return `${STORAGE_KEY_PREFIX}_${this.currentUserAddress}`;
+  }
 
   /**
    * Initialize storage and load projects into cache
@@ -390,7 +413,7 @@ class ProjectStorageService {
     );
 
     // Estimate storage size
-    const storageStr = localStorage.getItem(STORAGE_KEY) || '';
+    const storageStr = localStorage.getItem(this.getStorageKey()) || '';
     const storageSize = new Blob([storageStr]).size;
 
     return {
@@ -414,7 +437,7 @@ class ProjectStorageService {
   }
 
   private loadFromStorage(): ProjectStorage {
-    const data = localStorage.getItem(STORAGE_KEY);
+    const data = localStorage.getItem(this.getStorageKey());
     if (!data) {
       return {
         metadata: this.getMetadata(),
@@ -426,7 +449,7 @@ class ProjectStorageService {
   }
 
   private saveToStorage(data: ProjectStorage): void {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    localStorage.setItem(this.getStorageKey(), JSON.stringify(data));
   }
 
   private persist(): void {

@@ -4,15 +4,16 @@ import { useState } from 'react';
 import { Header } from '~/layout/header';
 import { BondingCurveConfigurator } from '~/mint/bonding-curve-configurator';
 import type { BondingCurveConfig } from '@dial/bonding-curve';
-import { solToLamports } from '@dial/bonding-curve';
+import { solToLamports, createDefaultBezierCurve } from '@dial/bonding-curve';
 import { Sparkles, Info } from 'lucide-react';
 
 export default function BondingCurveDemoPage() {
   const [config, setConfig] = useState<BondingCurveConfig>({
-    type: 'exponential',
+    type: 'bezier',
     basePrice: 0.5,
     priceIncrement: 0.05,
     maxSupply: 100,
+    bezierCurve: createDefaultBezierCurve(0.5, 5.0),
   });
 
   const [totalSupply, setTotalSupply] = useState(100);
@@ -46,7 +47,7 @@ export default function BondingCurveDemoPage() {
                     increases based on the number already minted. This creates scarcity and rewards
                     early adopters while ensuring fair, transparent pricing for everyone.
                   </p>
-                  <div className="grid md:grid-cols-3 gap-4 mt-4">
+                  <div className="grid md:grid-cols-4 gap-4 mt-4">
                     <div className="bg-background rounded-lg p-3">
                       <p className="font-semibold text-sm mb-1">📈 Linear</p>
                       <p className="text-xs text-muted-foreground">
@@ -63,6 +64,12 @@ export default function BondingCurveDemoPage() {
                       <p className="font-semibold text-sm mb-1">📊 Logarithmic</p>
                       <p className="text-xs text-muted-foreground">
                         Diminishing increases for accessibility
+                      </p>
+                    </div>
+                    <div className="bg-background rounded-lg p-3">
+                      <p className="font-semibold text-sm mb-1">✨ Bezier</p>
+                      <p className="text-xs text-muted-foreground">
+                        Custom curves with precise control
                       </p>
                     </div>
                   </div>

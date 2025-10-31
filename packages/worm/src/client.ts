@@ -97,3 +97,50 @@ export function getPublicUrl(filename: string): string {
   return `${cleanBaseUrl}/${cleanFilename}`;
 }
 
+/**
+ * List objects in the bucket with a given prefix
+ * @param prefix The prefix to filter objects by (e.g., "users/0x123.../assets/")
+ * @returns Array of objects in the bucket
+ */
+export async function listObjects(prefix: string): Promise<Array<{
+  key: string;
+  size: number;
+  lastModified: string;
+  contentType?: string;
+}>> {
+  const worm = getWormClient();
+  
+  // Access the underlying S3 client
+  // S3Worm uses AWS S3 SDK under the hood
+  const s3Client = (worm as any).client;
+  
+  if (!s3Client) {
+    console.error('S3 client not available on worm instance');
+    return [];
+  }
+
+  const config = getStorjConfig();
+  
+  try {
+    // Use the ListObjectsV2Command from AWS SDK
+    const { ListObjectsV2Command } = await import('@aws-sdk/client-s3');
+    
+    const command = new ListObjectsV2Command({
+      Bucket: config.bucket,
+      Prefix: prefix,
+    });
+
+    const response = await s3Client.send(command);
+    
+    return (response.Contents || []).map((item) => ({
+      key: item.Key || '',
+      size: item.Size || 0,
+      lastModified: item.LastModified?.toISOString() || new Date().toISOString(),
+      contentType: item.ContentType,
+    }));
+  } catch (error) {
+    console.error('Error listing objects:', error);
+    return [];
+  }
+}
+

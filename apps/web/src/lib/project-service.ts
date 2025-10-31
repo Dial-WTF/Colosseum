@@ -48,6 +48,8 @@ const USE_STORJ = false; // Set to true when Storj is configured
 
 export function setCurrentUserAddress(address: string | null) {
   currentUserAddress = address;
+  // Sync address with localStorage service for user-scoped storage
+  localStorageService.setUserAddress(address);
 }
 
 export function getCurrentUserAddress(): string | null {

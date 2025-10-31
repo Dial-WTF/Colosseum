@@ -18,12 +18,14 @@ interface AssetBrowserProps {
   workspace?: string;
   onAssetSelect?: (asset: Asset) => void;
   filterType?: 'image' | 'audio' | 'video' | 'all';
+  refreshTrigger?: number; // Add this to trigger a refresh from parent
 }
 
 export function AssetBrowser({ 
   workspace = 'default', 
   onAssetSelect,
-  filterType = 'all'
+  filterType = 'all',
+  refreshTrigger
 }: AssetBrowserProps) {
   const { address } = useUser();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -40,7 +42,7 @@ export function AssetBrowser({
     if (address) {
       loadAssets();
     }
-  }, [address, workspace]);
+  }, [address, workspace, refreshTrigger]); // Add refreshTrigger to dependencies
 
   const loadAssets = async () => {
     if (!address) return;

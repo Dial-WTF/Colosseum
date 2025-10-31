@@ -1,21 +1,24 @@
 'use client';
 
-import { Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { Suspense, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { AudioStudioProject } from '#/components/studio/audio-studio-project';
-import { AudioStudio } from '#/components/studio/audio-studio';
 
 export const dynamic = 'force-dynamic';
 
 function AudioStudioWrapper() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const hasProjectParams = searchParams?.has('projectId') || searchParams?.has('mode');
   
-  if (hasProjectParams) {
-    return <AudioStudioProject />;
-  }
+  // Always use project-based studio - redirect if no params
+  useEffect(() => {
+    if (!hasProjectParams) {
+      router.replace('/dashboard/create/audio?mode=project');
+    }
+  }, [hasProjectParams, router]);
   
-  return <AudioStudio />;
+  return <AudioStudioProject />;
 }
 
 export default function AudioStudioPage() {

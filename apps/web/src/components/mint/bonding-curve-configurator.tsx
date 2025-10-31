@@ -106,6 +106,8 @@ export function BondingCurveConfigurator({
                         currentEdition={currentEdition}
                         totalSupply={totalSupply}
                         showArea={true}
+                        editable={editable}
+                        onConfigChange={handleConfigChange}
                       />
                       <div className="mt-4 grid grid-cols-3 gap-4 text-center">
                         <div className="bg-secondary rounded-lg p-3">

@@ -66,13 +66,13 @@ export function MintPackager({ audioData, initialData, onClose, onMint }: MintPa
   // AI Generation state
   const [isGenerating, setIsGenerating] = useState(false);
   const [showGenerateModal, setShowGenerateModal] = useState(false);
-  const [generatePrompt, setGeneratePrompt] = useState('');
+  const [generatePrompt, setGeneratePrompt] = useState('A vibrant abstract design with musical notes, neon colors and digital waves');
   const [generateStyle, setGenerateStyle] = useState('sticker');
 
   // Metadata
   const [name, setName] = useState(initialData?.soundName || '');
-  const [symbol, setSymbol] = useState('');
-  const [description, setDescription] = useState('');
+  const [symbol, setSymbol] = useState('DIAL');
+  const [description, setDescription] = useState('A unique audio NFT created on Dial.WTF - your sound, on-chain forever.');
   const [artistName, setArtistName] = useState(initialData?.artistName || '');
   
   // Minting config

@@ -1,5 +1,5 @@
 import Decimal from 'decimal.js';
-import Bezier from 'bezier-js';
+import { Bezier } from 'bezier-js';
 import type { BezierCurveData, BezierSegment, BezierControlPoint } from './types';
 
 // Configure Decimal.js for high precision

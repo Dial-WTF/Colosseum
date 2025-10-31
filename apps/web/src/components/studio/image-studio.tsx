@@ -17,11 +17,13 @@ import {
   ChevronRight,
   ChevronLeft
 } from 'lucide-react';
+import { useUser } from '@/providers/user-context';
 import { AIGeneratorPanel } from './ai-generator-panel';
 import { ProjectList } from './project-list';
 import { AssetBrowser, type Asset } from './asset-browser';
 
 export function ImageStudio() {
+  const { address } = useUser();
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const fabricCanvasRef = useRef<Canvas | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,6 +40,8 @@ export function ImageStudio() {
   const [isLoading, setIsLoading] = useState(true);
   const [loadingStep, setLoadingStep] = useState('Initializing canvas editor...');
   const [isDraggingAsset, setIsDraggingAsset] = useState(false);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [assetRefreshTrigger, setAssetRefreshTrigger] = useState(0);
 
   // Initialize canvas
   useEffect(() => {
@@ -153,15 +157,44 @@ export function ImageStudio() {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file || !fabricCanvasRef.current || !fabricRef.current) return;
 
-    const reader = new FileReader();
-    reader.onload = (event) => {
-      const imgUrl = event.target?.result as string;
+    // Validate it's an image
+    if (!file.type.startsWith('image/')) {
+      alert('Please upload an image file');
+      return;
+    }
+
+    if (!address) {
+      alert('Please connect your wallet first');
+      return;
+    }
+
+    setIsUploadingImage(true);
+
+    try {
+      // Upload to bucket first
+      const formData = new FormData();
+      formData.append('file', file);
+      formData.append('address', address);
+      formData.append('workspace', 'image-studio');
+
+      const response = await fetch('/api/assets/upload', {
+        method: 'POST',
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Upload failed');
+      }
+
+      const asset = await response.json();
       
-      fabricRef.current!.Image.fromURL(imgUrl).then((img) => {
+      // Now add the uploaded image to the canvas
+      fabricRef.current!.Image.fromURL(asset.url).then((img) => {
         if (!fabricCanvasRef.current) return;
         
         // Scale image to fit canvas
@@ -183,18 +216,20 @@ export function ImageStudio() {
         console.error('Failed to load image:', error);
         alert('Failed to load image. Please try again.');
       });
-    };
-    
-    reader.onerror = () => {
-      console.error('Failed to read file');
-      alert('Failed to read file. Please try again.');
-    };
-    
-    reader.readAsDataURL(file);
-    
-    // Reset file input so the same file can be selected again
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+
+      // Trigger asset browser refresh to show the new asset
+      setAssetRefreshTrigger(prev => prev + 1);
+
+    } catch (error: any) {
+      console.error('Error uploading image:', error);
+      alert(error.message || 'Failed to upload image. Please try again.');
+    } finally {
+      setIsUploadingImage(false);
+      
+      // Reset file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
     }
   };
 
@@ -435,10 +470,11 @@ export function ImageStudio() {
             </button>
             <button
               onClick={addImage}
-              className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors"
+              disabled={isUploadingImage}
+              className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-md hover:bg-secondary/80 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <ImageIcon size={18} />
-              Add Image
+              {isUploadingImage ? 'Uploading...' : 'Add Image'}
             </button>
             <input
               ref={fileInputRef}
@@ -604,6 +640,7 @@ export function ImageStudio() {
             <AssetBrowser 
               workspace="image-studio" 
               filterType="image"
+              refreshTrigger={assetRefreshTrigger}
             />
           </div>
         </div>

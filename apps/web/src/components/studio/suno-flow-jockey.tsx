@@ -1,67 +1,67 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Music2, Loader2, Sparkles, Play, Sliders } from 'lucide-react';
+import { useState } from "react";
+import { Music2, Loader2, Sparkles, Play, Sliders } from "lucide-react";
 
 interface SunoFlowJockeyProps {
   onGenerate: (result: { url: string; prompt: string; metadata: any }) => void;
 }
 
 export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
-  const [prompt, setPrompt] = useState('');
-  const [genre, setGenre] = useState('electronic');
-  const [mood, setMood] = useState('energetic');
+  const [prompt, setPrompt] = useState("Late night drive through the city");
+  const [genre, setGenre] = useState("electronic");
+  const [mood, setMood] = useState("energetic");
   const [duration, setDuration] = useState(30);
   const [bpm, setBpm] = useState(120);
   const [isGenerating, setIsGenerating] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
 
   const genres = [
-    { value: 'electronic', label: '🎹 Electronic', emoji: '⚡' },
-    { value: 'hip-hop', label: '🎤 Hip Hop', emoji: '🔥' },
-    { value: 'rock', label: '🎸 Rock', emoji: '🤘' },
-    { value: 'jazz', label: '🎷 Jazz', emoji: '🎺' },
-    { value: 'ambient', label: '🌊 Ambient', emoji: '✨' },
-    { value: 'techno', label: '🔊 Techno', emoji: '💎' },
-    { value: 'house', label: '🏠 House', emoji: '🎵' },
-    { value: 'trap', label: '🎵 Trap', emoji: '💰' },
+    { value: "electronic", label: "🎹 Electronic", emoji: "⚡" },
+    { value: "hip-hop", label: "🎤 Hip Hop", emoji: "🔥" },
+    { value: "rock", label: "🎸 Rock", emoji: "🤘" },
+    { value: "jazz", label: "🎷 Jazz", emoji: "🎺" },
+    { value: "ambient", label: "🌊 Ambient", emoji: "✨" },
+    { value: "techno", label: "🔊 Techno", emoji: "💎" },
+    { value: "house", label: "🏠 House", emoji: "🎵" },
+    { value: "trap", label: "🎵 Trap", emoji: "💰" },
   ];
 
   const moods = [
-    { value: 'energetic', label: '⚡ Energetic' },
-    { value: 'chill', label: '😌 Chill' },
-    { value: 'dark', label: '🌑 Dark' },
-    { value: 'uplifting', label: '🌟 Uplifting' },
-    { value: 'melancholic', label: '💙 Melancholic' },
-    { value: 'aggressive', label: '🔥 Aggressive' },
-    { value: 'dreamy', label: '☁️ Dreamy' },
-    { value: 'funky', label: '🕺 Funky' },
+    { value: "energetic", label: "⚡ Energetic" },
+    { value: "chill", label: "😌 Chill" },
+    { value: "dark", label: "🌑 Dark" },
+    { value: "uplifting", label: "🌟 Uplifting" },
+    { value: "melancholic", label: "💙 Melancholic" },
+    { value: "aggressive", label: "🔥 Aggressive" },
+    { value: "dreamy", label: "☁️ Dreamy" },
+    { value: "funky", label: "🕺 Funky" },
   ];
 
   const durations = [
-    { value: 15, label: '15s' },
-    { value: 30, label: '30s' },
-    { value: 60, label: '1m' },
-    { value: 90, label: '1.5m' },
+    { value: 15, label: "15s" },
+    { value: 30, label: "30s" },
+    { value: 60, label: "1m" },
+    { value: 90, label: "1.5m" },
   ];
 
   const handleGenerate = async () => {
     if (!prompt.trim()) {
-      setError('Please describe the vibe you want');
+      setError("Please describe the vibe you want");
       return;
     }
 
     setIsGenerating(true);
-    setError('');
+    setError("");
 
     try {
       // Build enhanced prompt with music parameters
       const enhancedPrompt = `${genre} music, ${mood} mood, ${prompt}. BPM: ${bpm}, Duration: ${duration}s`;
 
-      const response = await fetch('/api/generate/audio/suno', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/generate/audio/suno", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           prompt: enhancedPrompt,
           genre,
@@ -75,7 +75,7 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Music generation failed');
+        throw new Error(data.error || "Music generation failed");
       }
 
       onGenerate({
@@ -89,24 +89,24 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
           rawPrompt: prompt,
         },
       });
-      
+
       // Reset form
-      setPrompt('');
+      setPrompt("");
     } catch (err: any) {
-      console.error('Suno generation error:', err);
-      setError(err.message || 'Failed to generate music. Please try again.');
+      console.error("Suno generation error:", err);
+      setError(err.message || "Failed to generate music. Please try again.");
     } finally {
       setIsGenerating(false);
     }
   };
 
   const examplePrompts = [
-    'Late night drive through the city',
-    'Underground rave energy',
-    'Smooth jazz club vibes',
-    'Sunrise beach meditation',
-    'Gym workout hype',
-    'Lo-fi study session beats',
+    "Late night drive through the city",
+    "Underground rave energy",
+    "Smooth jazz club vibes",
+    "Sunrise beach meditation",
+    "Gym workout hype",
+    "Lo-fi study session beats",
   ];
 
   return (
@@ -115,9 +115,7 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
       <div className="p-6 border-b border-border bg-gradient-to-r from-purple-600/10 to-pink-600/10">
         <div className="flex items-center gap-3 mb-2">
           <Music2 className="text-purple-500" size={28} />
-          <h3 className="text-xl font-bold text-foreground">
-            Flow Jockey
-          </h3>
+          <h3 className="text-xl font-bold text-foreground">Flow Jockey</h3>
           <Sparkles className="text-pink-500 animate-pulse" size={20} />
         </div>
         <p className="text-sm text-muted-foreground">
@@ -155,8 +153,8 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
                 disabled={isGenerating}
                 className={`p-3 rounded-lg text-sm font-medium transition-all ${
                   genre === g.value
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30'
-                    : 'bg-card border border-border text-foreground hover:border-purple-500/50'
+                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white shadow-lg shadow-purple-500/30"
+                    : "bg-card border border-border text-foreground hover:border-purple-500/50"
                 }`}
               >
                 <span className="mr-2">{g.emoji}</span>
@@ -179,8 +177,8 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
                 disabled={isGenerating}
                 className={`px-3 py-2 rounded-lg text-sm font-medium transition-all ${
                   mood === m.value
-                    ? 'bg-purple-600 text-white shadow-md'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    ? "bg-purple-600 text-white shadow-md"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
               >
                 {m.label}
@@ -202,8 +200,8 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
                 disabled={isGenerating}
                 className={`flex-1 px-4 py-2 rounded-lg text-sm font-medium transition-all ${
                   duration === d.value
-                    ? 'bg-pink-600 text-white shadow-md'
-                    : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
+                    ? "bg-pink-600 text-white shadow-md"
+                    : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                 }`}
               >
                 {d.label}
@@ -218,7 +216,7 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
           className="flex items-center gap-2 text-sm text-purple-500 hover:text-purple-400 transition-colors"
         >
           <Sliders size={16} />
-          {showAdvanced ? 'Hide' : 'Show'} Advanced Settings
+          {showAdvanced ? "Hide" : "Show"} Advanced Settings
         </button>
 
         {/* Advanced Settings */}
@@ -296,4 +294,3 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
     </div>
   );
 }
-
