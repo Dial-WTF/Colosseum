@@ -4,6 +4,61 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Custom Solana Wallet Adapter Styles */
+.wallet-adapter-modal-wrapper {
+  background: rgba(0, 0, 0, 0.8) !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.wallet-adapter-modal {
+  background: hsl(var(--background)) !important;
+  border: 1px solid hsl(var(--border)) !important;
+  border-radius: 0.75rem !important;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3) !important;
+}
+
+.wallet-adapter-modal-title {
+  color: hsl(var(--foreground)) !important;
+  font-weight: 600 !important;
+}
+
+.wallet-adapter-modal-button-close {
+  color: hsl(var(--muted-foreground)) !important;
+}
+
+.wallet-adapter-modal-button-close:hover {
+  color: hsl(var(--foreground)) !important;
+}
+
+.wallet-adapter-modal-list {
+  margin: 0 !important;
+}
+
+.wallet-adapter-modal-list-more {
+  color: hsl(var(--primary)) !important;
+}
+
+.wallet-adapter-button {
+  background-color: hsl(var(--primary)) !important;
+  color: hsl(var(--primary-foreground)) !important;
+  border-radius: 0.5rem !important;
+  font-weight: 600 !important;
+  transition: all 0.2s !important;
+}
+
+.wallet-adapter-button:not([disabled]):hover {
+  background-color: hsl(var(--primary) / 0.9) !important;
+}
+
+.wallet-adapter-button[disabled] {
+  opacity: 0.6 !important;
+  cursor: not-allowed !important;
+}
+
+.wallet-adapter-modal-list-more-icon-rotate {
+  fill: hsl(var(--primary)) !important;
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

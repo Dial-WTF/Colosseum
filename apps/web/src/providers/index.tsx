@@ -19,7 +19,7 @@ export function Providers({ children }: ProvidersProps) {
   // You can also provide a custom RPC endpoint
   const endpoint = useMemo(() => clusterApiUrl(network), [network]);
 
-  // Configure supported wallets
+  // Configure supported wallets - only Solana wallets
   const wallets = useMemo(
     () => [
       new PhantomWalletAdapter(),
@@ -30,7 +30,7 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <ConnectionProvider endpoint={endpoint}>
-      <WalletProvider wallets={wallets} autoConnect>
+      <WalletProvider wallets={wallets} autoConnect={true}>
         <WalletModalProvider>
           <UserProvider>
             {children}

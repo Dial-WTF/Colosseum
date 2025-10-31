@@ -22,6 +22,7 @@ export interface Project {
   description?: string;
   status: ProjectStatus;
   thumbnail?: string;
+  data?: ImageProjectData | AudioProjectData;
   currentVersionId?: string;
   versions: ProjectVersion[];
   createdAt: number;
@@ -80,6 +81,7 @@ export interface UpdateProjectInput {
   status?: ProjectStatus;
   tags?: string[];
   thumbnail?: string;
+  data?: ImageProjectData | AudioProjectData;
 }
 
 // Grid view display
