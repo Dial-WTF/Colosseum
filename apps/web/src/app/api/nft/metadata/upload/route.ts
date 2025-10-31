@@ -65,7 +65,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       uri: result.uri,
-      url: result.url,
+      filename: result.filename,
     });
   } catch (error: any) {
     console.error('❌ Error uploading metadata:', error);
