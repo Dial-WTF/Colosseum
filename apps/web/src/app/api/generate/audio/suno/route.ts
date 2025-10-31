@@ -73,7 +73,7 @@ export async function POST(request: NextRequest) {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'api-key': process.env.SUNO_API_KEY,
+        'Authorization': `Bearer ${process.env.SUNO_API_KEY}`,
       },
       body: JSON.stringify(sunoRequest),
     });
@@ -162,7 +162,7 @@ async function pollForAudioUrl(trackId: string, maxAttempts = 30): Promise<strin
       
       const response = await fetch(`${SUNO_API_BASE}/get?ids=${trackId}`, {
         headers: {
-          'api-key': process.env.SUNO_API_KEY || '',
+          'Authorization': `Bearer ${process.env.SUNO_API_KEY || ''}`,
         },
       });
 

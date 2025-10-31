@@ -90,7 +90,7 @@ const response = await fetch(`${SUNO_API_BASE}/generate`, {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    'api-key': process.env.SUNO_API_KEY,
+    'Authorization': `Bearer ${process.env.SUNO_API_KEY}`,
   },
   body: JSON.stringify({
     prompt: musicPrompt,
