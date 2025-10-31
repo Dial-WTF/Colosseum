@@ -21,7 +21,6 @@ import { ProjectHeader } from "./project-header";
 import { ProjectList } from "./project-list";
 import { CDBurner } from "./cd-burner";
 import { MintPackager, type PackagedNFTData } from "./mint-packager";
-import { StorageWarning } from "./storage-warning";
 import { useUser } from "@/providers/user-context";
 import {
   createProject,
@@ -86,10 +85,7 @@ export function AudioStudioProject() {
         await handleAutoSave();
       } catch (error) {
         console.error("Auto-save failed:", error);
-        // Show user-friendly error message
-        if (error instanceof Error && error.message.includes('quota')) {
-          alert('⚠️ Storage is full. Please delete old projects to free up space.\n\nGo to "My Collection" to manage your projects.');
-        }
+        // Error logged to console, no popup
       } finally {
         setIsAutoSaving(false);
       }
@@ -962,9 +958,6 @@ export function AudioStudioProject() {
 
   return (
     <div className="flex flex-col h-screen">
-      {/* Storage Warning */}
-      <StorageWarning />
-      
       {/* Project Header */}
       <ProjectHeader project={project} onUpdateProject={handleUpdateProject} />
 

@@ -219,19 +219,7 @@ class ProjectStorageService {
     };
 
     this.cache.set(project.id, updated);
-    
-    try {
-      this.persist();
-    } catch (error) {
-      // If persist fails due to quota, clean up and retry
-      if (error instanceof Error && error.message.includes('quota')) {
-        console.warn('⚠️ localStorage quota exceeded, attempting cleanup...');
-        await this.cleanupOldData();
-        this.persist();
-      } else {
-        throw error;
-      }
-    }
+    this.persist();
 
     return version;
   }
@@ -274,19 +262,7 @@ class ProjectStorageService {
     };
 
     this.cache.set(projectId, updatedProject);
-    
-    try {
-      this.persist();
-    } catch (error) {
-      // If persist fails due to quota, clean up and retry
-      if (error instanceof Error && error.message.includes('quota')) {
-        console.warn('⚠️ localStorage quota exceeded, attempting cleanup...');
-        await this.cleanupOldData();
-        this.persist();
-      } else {
-        throw error;
-      }
-    }
+    this.persist();
 
     return updated;
   }
@@ -494,19 +470,9 @@ class ProjectStorageService {
   private saveToStorage(data: ProjectStorage): void {
     try {
       const jsonStr = JSON.stringify(data);
-      
-      // Check size before saving
-      if (jsonStr.length > MAX_LOCALSTORAGE_SIZE) {
-        throw new Error('Data exceeds localStorage quota limit');
-      }
-      
       localStorage.setItem(this.getStorageKey(), jsonStr);
     } catch (error) {
-      if (error instanceof Error && 
-          (error.message.includes('quota') || error.message.includes('QuotaExceededError'))) {
-        console.error('❌ localStorage quota exceeded');
-        throw new Error('Storage quota exceeded. Please try deleting old projects.');
-      }
+      console.error('❌ localStorage save failed:', error);
       throw error;
     }
   }
