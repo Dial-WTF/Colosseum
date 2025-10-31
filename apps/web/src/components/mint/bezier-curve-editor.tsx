@@ -351,10 +351,16 @@ export function BezierCurveEditor({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-            Custom Bezier Curve
-          </h3>
+          <div className="flex items-center gap-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-500" />
+              Custom Bezier Curve
+            </h3>
+            <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-gradient-to-r from-amber-500/20 to-orange-500/20 border border-amber-500/30 rounded-full text-xs font-semibold text-amber-600 dark:text-amber-400">
+              <Sparkles className="h-3 w-3" />
+              Experimental - Coming Soon
+            </span>
+          </div>
           <p className="text-sm text-muted-foreground mt-1">
             Drag control points to shape your price curve
           </p>
