@@ -19,7 +19,7 @@
       }
     ],
     "paths": {
-      "@/*": ["./*"],
+      "@/*": ["./src/*"],
       "#/*": ["./src/*"],
       "~/*": ["./src/components/*"],
       "@dial/shared": ["../../packages/shared/src/index.ts"]

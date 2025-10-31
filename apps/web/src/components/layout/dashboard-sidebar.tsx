@@ -12,6 +12,7 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  User,
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -45,6 +46,11 @@ const navItems = [
     label: 'Marketplace',
     href: '/marketplace',
     icon: LayoutGrid,
+  },
+  {
+    label: 'My Profile',
+    href: '/dashboard/profile',
+    icon: User,
   },
 ];
 

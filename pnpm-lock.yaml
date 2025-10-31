@@ -14,6 +14,9 @@ importers:
 
   apps/web:
     dependencies:
+      '@dial/bonding-curve':
+        specifier: workspace:*
+        version: link:../../packages/bonding-curve
       '@dial/worm':
         specifier: workspace:*
         version: link:../../packages/worm
@@ -133,6 +136,10 @@ importers:
         version: 5.9.3
 
   packages/types:
+    dependencies:
+      '@dial/bonding-curve':
+        specifier: workspace:*
+        version: link:../bonding-curve
     devDependencies:
       '@types/node':
         specifier: ^22.8.6
@@ -146,6 +153,9 @@ importers:
       '@decoperations/s3worm':
         specifier: ^0.3.3
         version: 0.3.3(typescript@5.9.3)
+      '@dial/types':
+        specifier: workspace:*
+        version: link:../types
     devDependencies:
       '@types/node':
         specifier: ^22.8.6

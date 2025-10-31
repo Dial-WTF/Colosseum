@@ -28,7 +28,8 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@decoperations/s3worm": "^0.3.3"
+    "@decoperations/s3worm": "^0.3.3",
+    "@dial/types": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^22.8.6",

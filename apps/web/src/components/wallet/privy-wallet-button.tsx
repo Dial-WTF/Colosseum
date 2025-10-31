@@ -60,17 +60,20 @@ export function PrivyWalletButton() {
   }
 
   // Authenticated - show wallet info with dropdown menu
+  // Get the first available wallet address
+  const walletAddress = solanaWallet?.address || wallets[0]?.address;
+  
   return (
     <div className="relative">
       <button
         onClick={() => setShowMenu(!showMenu)}
         className="flex items-center space-x-2 px-4 py-2 bg-primary text-primary-foreground rounded-lg font-semibold hover:bg-primary/90 transition-colors"
       >
-        {solanaWallet?.address ? (
+        {walletAddress ? (
           <>
-            <SolanaLogo className="h-5 w-5" />
-            <span className="font-mono">
-              {formatAddress(solanaWallet.address)}
+            <SolanaLogo className="h-5 w-5 flex-shrink-0" />
+            <span className="font-mono text-sm">
+              {formatAddress(walletAddress)}
             </span>
           </>
         ) : (
@@ -103,23 +106,23 @@ export function PrivyWalletButton() {
                   <p className="text-sm font-medium text-foreground truncate">
                     {user?.email?.address || 'Anonymous'}
                   </p>
-                  {solanaWallet?.address && (
+                  {walletAddress && (
                     <p className="text-xs text-muted-foreground font-mono">
-                      {formatAddress(solanaWallet.address)}
+                      {formatAddress(walletAddress)}
                     </p>
                   )}
                 </div>
               </div>
               
               {/* Wallet Info */}
-              {solanaWallet && (
+              {walletAddress && (
                 <div className="mt-3 p-2 bg-secondary/50 rounded text-xs">
                   <p className="text-muted-foreground mb-1 flex items-center gap-1">
                     <SolanaLogo className="h-3 w-3" />
                     Solana Address
                   </p>
                   <p className="font-mono break-all text-foreground">
-                    {solanaWallet.address}
+                    {walletAddress}
                   </p>
                 </div>
               )}

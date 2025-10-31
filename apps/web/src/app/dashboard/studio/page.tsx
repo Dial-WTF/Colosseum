@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ProjectGridItem } from '@dial/types';
-import { getProjectsForGrid, deleteProject, projectStorage } from '@/lib/project-storage';
+import { getProjectsForGrid, deleteProject, projectStorage, duplicateProject, exportProject } from '@/lib/project-service';
 import {
   Image as ImageIcon,
   Music,
@@ -72,7 +72,7 @@ export default function StudioDashboard() {
 
   const handleDuplicateProject = async (id: string) => {
     try {
-      await projectStorage.duplicateProject(id);
+      await duplicateProject(id);
       await loadProjects();
       await loadStats();
     } catch (error) {
@@ -83,7 +83,7 @@ export default function StudioDashboard() {
 
   const handleExportProject = async (id: string) => {
     try {
-      const json = await projectStorage.exportProject(id);
+      const json = await exportProject(id);
       if (!json) return;
 
       const blob = new Blob([json], { type: 'application/json' });

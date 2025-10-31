@@ -2,6 +2,7 @@
 
 import { ReactNode } from 'react';
 import { PrivyProviderWrapper } from './privy-provider';
+import { UserProvider } from './user-context';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -10,7 +11,9 @@ interface ProvidersProps {
 export function Providers({ children }: ProvidersProps) {
   return (
     <PrivyProviderWrapper>
-      {children}
+      <UserProvider>
+        {children}
+      </UserProvider>
     </PrivyProviderWrapper>
   );
 }

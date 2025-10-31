@@ -19,10 +19,10 @@ function isValidSolanaAddress(address: string): boolean {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const { address } = params;
+    const { address } = await params;
 
     // Validate address format
     if (!isValidSolanaAddress(address)) {
@@ -60,10 +60,10 @@ export async function GET(
  */
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const { address } = params;
+    const { address } = await params;
 
     // Validate address format
     if (!isValidSolanaAddress(address)) {
@@ -106,10 +106,10 @@ export async function PUT(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const { address } = params;
+    const { address } = await params;
 
     // Validate address format
     if (!isValidSolanaAddress(address)) {

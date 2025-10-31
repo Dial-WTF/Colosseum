@@ -22,7 +22,7 @@ import {
 import { AIGeneratorPanel } from './ai-generator-panel';
 import { VersionManager } from './version-manager';
 import { ProjectHeader } from './project-header';
-import { projectStorage, createProject, createVersion, getProject, updateProject as updateProjectApi, deleteVersion as deleteVersionApi, updateVersion as updateVersionApi } from '@/lib/project-storage';
+import { projectStorage, createProject, createVersion, getProject, updateProject as updateProjectApi, deleteVersion as deleteVersionApi, updateVersion as updateVersionApi } from '@/lib/project-service';
 
 export function ImageStudioProject() {
   const router = useRouter();

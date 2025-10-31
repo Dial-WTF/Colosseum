@@ -18,10 +18,10 @@ function isValidSolanaAddress(address: string): boolean {
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const { address } = params;
+    const { address } = await params;
 
     if (!isValidSolanaAddress(address)) {
       return NextResponse.json(
@@ -57,10 +57,10 @@ export async function GET(
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { address: string } }
+  { params }: { params: Promise<{ address: string }> }
 ) {
   try {
-    const { address } = params;
+    const { address } = await params;
 
     if (!isValidSolanaAddress(address)) {
       return NextResponse.json(
