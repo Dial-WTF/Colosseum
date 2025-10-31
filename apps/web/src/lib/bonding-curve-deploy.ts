@@ -21,7 +21,6 @@ import {
   Metaplex,
   keypairIdentity,
   toMetaplexFile,
-  bundlrStorage,
 } from '@metaplex-foundation/js';
 import { BondingCurveClient } from '@dial/bonding-curve-program';
 import type { BondingCurveConfig } from '@dial/bonding-curve';
@@ -72,8 +71,7 @@ export async function deployCollectionWithBondingCurve(
   connection: Connection
 ): Promise<DeployedCollection> {
   const metaplex = Metaplex.make(connection)
-    .use(keypairIdentity(payer))
-    .use(bundlrStorage());
+    .use(keypairIdentity(payer));
 
   // 1. Upload collection metadata to Arweave/IPFS
   console.log('📤 Uploading collection metadata...');
@@ -152,8 +150,7 @@ export async function mintEditionWithMetadata(
   connection: Connection
 ): Promise<{ mint: PublicKey; signature: string; price: number }> {
   const metaplex = Metaplex.make(connection)
-    .use(keypairIdentity(buyer))
-    .use(bundlrStorage());
+    .use(keypairIdentity(buyer));
 
   const bondingCurveClient = new BondingCurveClient(connection);
 
