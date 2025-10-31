@@ -1,0 +1,1053 @@
+solanaActionsContentScript.js:28 Uncaught (in promise) TypeError: Failed to execute 'observe' on 'MutationObserver': parameter 1 is not of type 'Node'.
+at solanaActionsContentScript.js:28:41730
+(anonymous) @ solanaActionsContentScript.js:28
+Promise.then
+P4 @ solanaActionsContentScript.js:28
+O2 @ solanaActionsContentScript.js:28
+H8 @ solanaActionsContentScript.js:1215
+await in H8
+(anonymous) @ solanaActionsContentScript.js:1215
+(anonymous) @ solanaActionsContentScript.js:1215
+content.js:85 [VSC] Content script initialized
+hook.js:608 Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app. Error Component Stack
+at WalletProvider (WalletProvider.js:38:27)
+at ConnectionProvider (ConnectionProvider.js:11:31)
+at Providers (index.tsx:15:29)
+at body (<anonymous>)
+at html (<anonymous>)
+at RootLayout [Server] (<anonymous>)
+at RedirectErrorBoundary (redirect-boundary.js:74:9)
+at RedirectBoundary (redirect-boundary.js:82:11)
+at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+at NotFoundBoundary (not-found-boundary.js:84:11)
+at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+at ReactDevOverlay (ReactDevOverlay.js:80:9)
+at HotReload (hot-reloader-client.js:379:11)
+at Router (app-router.js:155:11)
+at ErrorBoundaryHandler (error-boundary.js:120:9)
+at ErrorBoundary (error-boundary.js:167:11)
+at AppRouter (app-router.js:549:11)
+at ServerRoot (app-index.js:142:46)
+at Root (app-index.js:162:11)
+overrideMethod @ hook.js:608
+eval @ useStandardWalletAdapters.js:39
+eval @ useStandardWalletAdapters.js:35
+mountMemo @ react-dom-client.development.js:6790
+useMemo @ react-dom-client.development.js:22668
+exports.useMemo @ react.development.js:1490
+useStandardWalletAdapters @ useStandardWalletAdapters.js:33
+WalletProvider @ WalletProvider.js:40
+react-stack-bottom-frame @ react-dom-client.development.js:22339
+renderWithHooks @ react-dom-client.development.js:5731
+updateFunctionComponent @ react-dom-client.development.js:7992
+beginWork @ react-dom-client.development.js:9657
+runWithFiberInDEV @ react-dom-client.development.js:544
+performUnitOfWork @ react-dom-client.development.js:14986
+workLoopConcurrent @ react-dom-client.development.js:14980
+renderRootConcurrent @ react-dom-client.development.js:14955
+performWorkOnRoot @ react-dom-client.development.js:14287
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+performWorkUntilDeadline @ scheduler.development.js:44
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+hook.js:608 Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app. Error Component Stack
+at WalletProvider (WalletProvider.js:38:27)
+at ConnectionProvider (ConnectionProvider.js:11:31)
+at Providers (index.tsx:15:29)
+at body (<anonymous>)
+at html (<anonymous>)
+at RootLayout [Server] (<anonymous>)
+at RedirectErrorBoundary (redirect-boundary.js:74:9)
+at RedirectBoundary (redirect-boundary.js:82:11)
+at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+at NotFoundBoundary (not-found-boundary.js:84:11)
+at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+at ReactDevOverlay (ReactDevOverlay.js:80:9)
+at HotReload (hot-reloader-client.js:379:11)
+at Router (app-router.js:155:11)
+at ErrorBoundaryHandler (error-boundary.js:120:9)
+at ErrorBoundary (error-boundary.js:167:11)
+at AppRouter (app-router.js:549:11)
+at ServerRoot (app-index.js:142:46)
+at Root (app-index.js:162:11)
+overrideMethod @ hook.js:608
+eval @ useStandardWalletAdapters.js:39
+eval @ useStandardWalletAdapters.js:35
+mountMemo @ react-dom-client.development.js:6790
+useMemo @ react-dom-client.development.js:22668
+exports.useMemo @ react.development.js:1490
+useStandardWalletAdapters @ useStandardWalletAdapters.js:33
+WalletProvider @ WalletProvider.js:40
+react-stack-bottom-frame @ react-dom-client.development.js:22339
+renderWithHooks @ react-dom-client.development.js:5731
+updateFunctionComponent @ react-dom-client.development.js:7992
+beginWork @ react-dom-client.development.js:9657
+runWithFiberInDEV @ react-dom-client.development.js:544
+performUnitOfWork @ react-dom-client.development.js:14986
+workLoopSync @ react-dom-client.development.js:14816
+renderRootSync @ react-dom-client.development.js:14794
+performWorkOnRoot @ react-dom-client.development.js:14329
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+performWorkUntilDeadline @ scheduler.development.js:44
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+inpage.js:1 StreamMiddleware - Unknown response id "solflare-detect-metamask"
+overrideMethod @ hook.js:608
+(anonymous) @ inpage.js:1
+write @ inpage.js:1
+A @ inpage.js:12
+(anonymous) @ inpage.js:12
+j.write @ inpage.js:12
+d @ inpage.js:12
+a.emit @ inpage.js:10
+I @ inpage.js:12
+A @ inpage.js:12
+j.push @ inpage.js:12
+_write @ inpage.js:1
+A @ inpage.js:12
+(anonymous) @ inpage.js:12
+j.write @ inpage.js:12
+d @ inpage.js:12
+a.emit @ inpage.js:10
+I @ inpage.js:12
+A @ inpage.js:12
+j.push @ inpage.js:12
+\_onData @ inpage.js:1
+\_onMessage @ inpage.js:1
+postMessage
+\_postMessage @ contentscript.js:1
+\_write @ contentscript.js:1
+I @ contentscript.js:12
+(anonymous) @ contentscript.js:12
+R.write @ contentscript.js:12
+d @ contentscript.js:12
+a.emit @ contentscript.js:10
+x @ contentscript.js:12
+I @ contentscript.js:12
+R.push @ contentscript.js:12
+\_write @ contentscript.js:1
+I @ contentscript.js:12
+(anonymous) @ contentscript.js:12
+R.write @ contentscript.js:12
+d @ contentscript.js:12
+a.emit @ contentscript.js:10
+x @ contentscript.js:12
+I @ contentscript.js:12
+R.push @ contentscript.js:12
+\_write @ contentscript.js:1
+I @ contentscript.js:12
+(anonymous) @ contentscript.js:12
+R.write @ contentscript.js:12
+f @ contentscript.js:10
+a.emit @ contentscript.js:10
+X @ contentscript.js:10
+K @ contentscript.js:10
+J.push @ contentscript.js:10
+\_onMessage @ contentscript.js:10
+(anonymous) @ contentscript.js:10
+hook.js:608 Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app. Error Component Stack
+at WalletProvider (WalletProvider.js:38:27)
+at ConnectionProvider (ConnectionProvider.js:11:31)
+at Providers (index.tsx:15:29)
+at body (<anonymous>)
+at html (<anonymous>)
+at RootLayout [Server] (<anonymous>)
+at RedirectErrorBoundary (redirect-boundary.js:74:9)
+at RedirectBoundary (redirect-boundary.js:82:11)
+at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+at NotFoundBoundary (not-found-boundary.js:84:11)
+at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+at ReactDevOverlay (ReactDevOverlay.js:80:9)
+at HotReload (hot-reloader-client.js:379:11)
+at Router (app-router.js:155:11)
+at ErrorBoundaryHandler (error-boundary.js:120:9)
+at ErrorBoundary (error-boundary.js:167:11)
+at AppRouter (app-router.js:549:11)
+at ServerRoot (app-index.js:142:46)
+at Root (app-index.js:162:11)
+overrideMethod @ hook.js:608
+eval @ useStandardWalletAdapters.js:39
+eval @ useStandardWalletAdapters.js:35
+mountMemo @ react-dom-client.development.js:6790
+useMemo @ react-dom-client.development.js:22668
+exports.useMemo @ react.development.js:1490
+useStandardWalletAdapters @ useStandardWalletAdapters.js:33
+WalletProvider @ WalletProvider.js:40
+react-stack-bottom-frame @ react-dom-client.development.js:22339
+renderWithHooks @ react-dom-client.development.js:5731
+updateFunctionComponent @ react-dom-client.development.js:7992
+beginWork @ react-dom-client.development.js:9657
+runWithFiberInDEV @ react-dom-client.development.js:544
+performUnitOfWork @ react-dom-client.development.js:14986
+workLoopConcurrent @ react-dom-client.development.js:14980
+renderRootConcurrent @ react-dom-client.development.js:14955
+performWorkOnRoot @ react-dom-client.development.js:14287
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+performWorkUntilDeadline @ scheduler.development.js:44
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+hook.js:608 Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app. Error Component Stack
+at WalletProvider (WalletProvider.js:38:27)
+at ConnectionProvider (ConnectionProvider.js:11:31)
+at Providers (index.tsx:15:29)
+at body (<anonymous>)
+at html (<anonymous>)
+at RootLayout [Server] (<anonymous>)
+at RedirectErrorBoundary (redirect-boundary.js:74:9)
+at RedirectBoundary (redirect-boundary.js:82:11)
+at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+at NotFoundBoundary (not-found-boundary.js:84:11)
+at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+at ReactDevOverlay (ReactDevOverlay.js:80:9)
+at HotReload (hot-reloader-client.js:379:11)
+at Router (app-router.js:155:11)
+at ErrorBoundaryHandler (error-boundary.js:120:9)
+at ErrorBoundary (error-boundary.js:167:11)
+at AppRouter (app-router.js:549:11)
+at ServerRoot (app-index.js:142:46)
+at Root (app-index.js:162:11)
+overrideMethod @ hook.js:608
+eval @ useStandardWalletAdapters.js:39
+eval @ useStandardWalletAdapters.js:35
+mountMemo @ react-dom-client.development.js:6790
+useMemo @ react-dom-client.development.js:22668
+exports.useMemo @ react.development.js:1490
+useStandardWalletAdapters @ useStandardWalletAdapters.js:33
+WalletProvider @ WalletProvider.js:40
+react-stack-bottom-frame @ react-dom-client.development.js:22339
+renderWithHooks @ react-dom-client.development.js:5731
+updateFunctionComponent @ react-dom-client.development.js:7992
+beginWork @ react-dom-client.development.js:9657
+runWithFiberInDEV @ react-dom-client.development.js:544
+performUnitOfWork @ react-dom-client.development.js:14986
+workLoopSync @ react-dom-client.development.js:14816
+renderRootSync @ react-dom-client.development.js:14794
+performWorkOnRoot @ react-dom-client.development.js:14329
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+performWorkUntilDeadline @ scheduler.development.js:44
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+page.js:1720 React instrumentation encountered an error: Error: Invalid argument not valid semver ('' received).
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:56
+injectInternals @ react-reconciler.development.js:740
+exports.injectIntoDevTools @ react-reconciler.development.js:8741
+createReconciler @ events-f8cd670d.esm.js:1312
+eval @ events-f8cd670d.esm.js:1612
+(app-pages-browser)/../../node_modules/.pnpm/@react-three+fiber@9.4.0_@types+react@18.3.26_immer@10.2.0_react-dom@18.3.1_react@18.3.1**rea_3zjsyct62qdimphr3gjncs5jom/node_modules/@react-three/fiber/dist/events-f8cd670d.esm.js @ page.js:1720
+options.factory @ webpack.js?v=1761891132033:717
+**webpack*require** @ webpack.js?v=1761891132033:37
+fn @ webpack.js?v=1761891132033:374
+eval @ cd-burner.tsx:8
+(app-pages-browser)/./src/components/studio/cd-burner.tsx @ page.js:6571
+options.factory @ webpack.js?v=1761891132033:717
+**webpack_require** @ webpack.js?v=1761891132033:37
+fn @ webpack.js?v=1761891132033:374
+eval @ VM19221 audio-studio-project.tsx:23
+(app-pages-browser)/./src/components/studio/audio-studio-project.tsx @ page.js:6560
+options.factory @ webpack.js?v=1761891132033:717
+**webpack_require** @ webpack.js?v=1761891132033:37
+fn @ webpack.js?v=1761891132033:374
+eval @ page.tsx:10
+(app-pages-browser)/./src/app/dashboard/create/audio/page.tsx @ page.js:6494
+options.factory @ webpack.js?v=1761891132033:717
+**webpack_require\_\_ @ webpack.js?v=1761891132033:37
+fn @ webpack.js?v=1761891132033:374
+Promise.then
+eval @ next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Fjeremy%2FDevelopment%2FDial.WTF%2FColosseum%2Fapps%2Fweb%2Fsrc%2Fapp%2Fdashboard%2Fcreate%2Faudio%2Fpage.tsx%22%2C%22ids%22%3A%5B%5D%7D&server=false!:1
+(app-pages-browser)/../../node_modules/.pnpm/next@15.0.3*@babel+core@7.28.5_@opentelemetry+api@1.9.0_react-dom@18.3.1_react@18.3.1__react@18.3.1/node_modules/next/dist/build/webpack/loaders/next-flight-client-entry-loader.js?modules=%7B%22request%22%3A%22%2FUsers%2Fjeremy%2FDevelopment%2FDial.WTF%2FColosseum%2Fapps%2Fweb%2Fsrc%2Fapp%2Fdashboard%2Fcreate%2Faudio%2Fpage.tsx%22%2C%22ids%22%3A%5B%5D%7D&server=false! @ page.js:37
+options.factory @ webpack.js?v=1761891132033:717
+**webpack_require** @ webpack.js?v=1761891132033:37
+**webpack_exec** @ page.js:12561
+(anonymous) @ page.js:12562
+**webpack_require**.O @ webpack.js?v=1761891132033:89
+(anonymous) @ page.js:12563
+webpackJsonpCallback @ webpack.js?v=1761891132033:1393
+(anonymous) @ page.js:9
+hook.js:608 Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app. Error Component Stack
+at WalletProvider (WalletProvider.js:38:27)
+at ConnectionProvider (ConnectionProvider.js:11:31)
+at Providers (index.tsx:15:29)
+at body (<anonymous>)
+at html (<anonymous>)
+at RootLayout [Server] (<anonymous>)
+at RedirectErrorBoundary (redirect-boundary.js:74:9)
+at RedirectBoundary (redirect-boundary.js:82:11)
+at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+at NotFoundBoundary (not-found-boundary.js:84:11)
+at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+at ReactDevOverlay (ReactDevOverlay.js:80:9)
+at HotReload (hot-reloader-client.js:379:11)
+at Router (app-router.js:155:11)
+at ErrorBoundaryHandler (error-boundary.js:120:9)
+at ErrorBoundary (error-boundary.js:167:11)
+at AppRouter (app-router.js:549:11)
+at ServerRoot (app-index.js:142:46)
+at Root (app-index.js:162:11)
+overrideMethod @ hook.js:608
+eval @ useStandardWalletAdapters.js:39
+eval @ useStandardWalletAdapters.js:35
+mountMemo @ react-dom-client.development.js:6790
+useMemo @ react-dom-client.development.js:22668
+exports.useMemo @ react.development.js:1490
+useStandardWalletAdapters @ useStandardWalletAdapters.js:33
+WalletProvider @ WalletProvider.js:40
+react-stack-bottom-frame @ react-dom-client.development.js:22339
+renderWithHooks @ react-dom-client.development.js:5731
+updateFunctionComponent @ react-dom-client.development.js:7992
+beginWork @ react-dom-client.development.js:9657
+runWithFiberInDEV @ react-dom-client.development.js:544
+performUnitOfWork @ react-dom-client.development.js:14986
+workLoopConcurrent @ react-dom-client.development.js:14980
+renderRootConcurrent @ react-dom-client.development.js:14955
+performWorkOnRoot @ react-dom-client.development.js:14287
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+performWorkUntilDeadline @ scheduler.development.js:44
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+hook.js:608 Phantom was registered as a Standard Wallet. The Wallet Adapter for Phantom can be removed from your app. Error Component Stack
+at WalletProvider (WalletProvider.js:38:27)
+at ConnectionProvider (ConnectionProvider.js:11:31)
+at Providers (index.tsx:15:29)
+at body (<anonymous>)
+at html (<anonymous>)
+at RootLayout [Server] (<anonymous>)
+at RedirectErrorBoundary (redirect-boundary.js:74:9)
+at RedirectBoundary (redirect-boundary.js:82:11)
+at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+at NotFoundBoundary (not-found-boundary.js:84:11)
+at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+at ReactDevOverlay (ReactDevOverlay.js:80:9)
+at HotReload (hot-reloader-client.js:379:11)
+at Router (app-router.js:155:11)
+at ErrorBoundaryHandler (error-boundary.js:120:9)
+at ErrorBoundary (error-boundary.js:167:11)
+at AppRouter (app-router.js:549:11)
+at ServerRoot (app-index.js:142:46)
+at Root (app-index.js:162:11)
+overrideMethod @ hook.js:608
+eval @ useStandardWalletAdapters.js:39
+eval @ useStandardWalletAdapters.js:35
+mountMemo @ react-dom-client.development.js:6790
+useMemo @ react-dom-client.development.js:22668
+exports.useMemo @ react.development.js:1490
+useStandardWalletAdapters @ useStandardWalletAdapters.js:33
+WalletProvider @ WalletProvider.js:40
+react-stack-bottom-frame @ react-dom-client.development.js:22339
+renderWithHooks @ react-dom-client.development.js:5731
+updateFunctionComponent @ react-dom-client.development.js:7992
+beginWork @ react-dom-client.development.js:9657
+runWithFiberInDEV @ react-dom-client.development.js:544
+performUnitOfWork @ react-dom-client.development.js:14986
+workLoopSync @ react-dom-client.development.js:14816
+renderRootSync @ react-dom-client.development.js:14794
+performWorkOnRoot @ react-dom-client.development.js:14329
+performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+performWorkUntilDeadline @ scheduler.development.js:44
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: false, connecting: false, address: 'NOT CONNECTED'}
+react-dom-client.development.js:4102 Uncaught Error: Hydration failed because the server rendered HTML didn't match the client. As a result this tree will be regenerated on the client. This can happen if a SSR-ed Client Component used:
+
+- A server/client branch `if (typeof window !== 'undefined')`.
+- Variable input such as `Date.now()` or `Math.random()` which changes each time it's called.
+- Date formatting in a user's locale which doesn't match the server.
+- External changing data without sending a snapshot of it along with the HTML.
+- Invalid HTML tag nesting.
+
+It can also happen if the client has a browser extension installed which messes with the HTML before React loaded.
+
+https://react.dev/link/hydration-mismatch
+
+...
+<DashboardRootLayout>
+<DashboardLayout>
+<div className="flex h-scr...">
+<DashboardSidebar>
+<div className="flex-1 fle...">
+<DashboardTopBar>
+<header className="h-16 borde...">
+<div className="h-full px-...">
+<div>
+<div className="flex items...">
+<button>
+<button>
+<div>
+<SolanaWalletButton>
+<WalletMultiButton className="!bg-primar...">
+<BaseWalletMultiButton className="!bg-primar..." labels={{...}}>
+<div className="wallet-ada...">
+<BaseWalletConnectionButton className="!bg-primar..." aria-expanded={false} style={{...}} ...>
+<Button className="wallet-ada..." aria-expanded={false} style={{...}} ...>
+<button className="wallet-ada..." disabled={undefined} style={{...}} ...>
+
+-                                 <i className="wallet-adapter-button-start-icon">
+
+*                                 Select Wallet
+                                    ...
+                              ...
+              ...
+
+      at throwOnHydrationMismatch (react-dom-client.development.js:4102:11)
+      at beginWork (react-dom-client.development.js:9903:17)
+      at runWithFiberInDEV (react-dom-client.development.js:544:16)
+      at performUnitOfWork (react-dom-client.development.js:14986:22)
+      at workLoopConcurrent (react-dom-client.development.js:14980:9)
+      at renderRootConcurrent (react-dom-client.development.js:14955:15)
+      at performWorkOnRoot (react-dom-client.development.js:14287:11)
+      at performWorkOnRootViaSchedulerTask (react-dom-client.development.js:15843:7)
+      at MessagePort.performWorkUntilDeadline (scheduler.development.js:44:48)
+
+  throwOnHydrationMismatch @ react-dom-client.development.js:4102
+  beginWork @ react-dom-client.development.js:9903
+  runWithFiberInDEV @ react-dom-client.development.js:544
+  performUnitOfWork @ react-dom-client.development.js:14986
+  workLoopConcurrent @ react-dom-client.development.js:14980
+  renderRootConcurrent @ react-dom-client.development.js:14955
+  performWorkOnRoot @ react-dom-client.development.js:14287
+  performWorkOnRootViaSchedulerTask @ react-dom-client.development.js:15843
+  performWorkUntilDeadline @ scheduler.development.js:44
+  VM19221 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  VM19221 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM19221 audio-studio-project.tsx:175 🎵 WaveSurfer initialization effect running... {waveformRefExists: true, wavesurferExists: false, projectExists: true}
+  VM19221 audio-studio-project.tsx:189 🚀 Creating WaveSurfer instance...
+  VM19221 audio-studio-project.tsx:208 ✅ WaveSurfer instance created successfully!
+  contentScript.js:29 no
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM19221 audio-studio-project.tsx:412 📤 Starting audio upload: {fileName: '1-800.mp3', fileType: 'audio/mpeg', fileSize: '4.75MB', projectId: '1761891020763-8f7gppvdn', address: '2agjAkvM...'}
+  VM19221 audio-studio-project.tsx:430 📤 Uploading to /api/assets/upload...
+  VM19221 audio-studio-project.tsx:252 🧹 Cleaning up WaveSurfer...
+  VM19221 audio-studio-project.tsx:175 🎵 WaveSurfer initialization effect running... {waveformRefExists: true, wavesurferExists: true, projectExists: true}
+  VM19221 audio-studio-project.tsx:185 ✅ WaveSurfer already initialized
+  VM19221 audio-studio-project.tsx:442 ✅ Upload successful: https://gateway.storjshare.io/dial-tones/users/2agjAkvMhkUHsUipNK7uvfhnCiWaJbnAc6uvBQ3g3kWC/assets/project-1761891020763-8f7gppvdn/1761891144055-1-800.mp3?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Content-Sha256=UNSIGNED-PAYLOAD&X-Amz-Credential=juf33qgncgfly4lk5vvnqcrhzbea%2F20251031%2Fus-east-1%2Fs3%2Faws4_request&X-Amz-Date=20251031T061228Z&X-Amz-Expires=86400&X-Amz-Signature=59031070a2c09657ebc7382ccc10a402e67355516541e5f5524ed3e1c830d300&X-Amz-SignedHeaders=host&x-amz-checksum-mode=ENABLED&x-id=GetObject
+  VM19221 audio-studio-project.tsx:445 📥 Fetching uploaded audio from URL...
+  VM19221 audio-studio-project.tsx:452 🎵 Decoding audio data...
+  VM19221 audio-studio-project.tsx:456 ✅ Audio decoded: {duration: '207.61s', channels: 2, sampleRate: 24000}
+  VM19221 audio-studio-project.tsx:463 🌊 Loading into WaveSurfer...
+  VM19221 audio-studio-project.tsx:470 ✅ Audio upload complete!
+  VM19221 audio-studio-project.tsx:220 ✅ Audio loaded and ready
+  VM19221 audio-studio-project.tsx:94 [Violation] 'setTimeout' handler took 128ms
+  VM19221 audio-studio-project.tsx:357 Auto-save failed: QuotaExceededError: Failed to execute 'setItem' on 'Storage': Setting the value of 'dial_studio_projects_2agjAkvMhkUHsUipNK7uvfhnCiWaJbnAc6uvBQ3g3kWC' exceeded the quota.
+  at captureStackTrace (capture-stack-trace.js:13:23)
+  at console.error (intercept-console-error.js:51:62)
+  at handleAutoSave (VM19221 audio-studio-project.tsx:357:21)
+  at async AudioStudioProject.useEffect (VM19221 audio-studio-project.tsx:97:25)
+  overrideMethod @ hook.js:608
+  error @ intercept-console-error.js:56
+  handleAutoSave @ VM19221 audio-studio-project.tsx:357
+  await in handleAutoSave
+  AudioStudioProject.useEffect @ VM19221 audio-studio-project.tsx:97
+  setTimeout
+  AudioStudioProject.useEffect @ VM19221 audio-studio-project.tsx:93
+  react-stack-bottom-frame @ react-dom-client.development.js:22420
+  runWithFiberInDEV @ react-dom-client.development.js:544
+  commitHookEffectListMount @ react-dom-client.development.js:10732
+  commitHookPassiveMountEffects @ react-dom-client.development.js:10852
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12627
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12697
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12620
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  recursivelyTraversePassiveMountEffects @ react-dom-client.development.js:12601
+  commitPassiveMountOnFiber @ react-dom-client.development.js:12729
+  hot-reloader-client.js:241 [Fast Refresh] rebuilding
+  hot-reloader-client.js:68 [Fast Refresh] done in 3069ms
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  [Violation] Forced reflow while executing JavaScript took 34ms
+  hook.js:608 The width(-1) and height(-1) of chart should be greater than 0,
+  please check the style of container, or the props width(100%) and height(100%),
+  or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the
+  height and width. Error Component Stack
+  at eval (ResponsiveContainer.js:111:11)
+  at eval (ResponsiveContainer.js:219:38)
+  at div (<anonymous>)
+  at MotionDOMComponent (index.mjs:62:65)
+  at PresenceChild (PresenceChild.mjs:18:11)
+  at AnimatePresence (index.mjs:55:11)
+  at div (<anonymous>)
+  at BondingCurveChart (bonding-curve-chart.tsx:32:3)
+  at div (<anonymous>)
+  at MotionDOMComponent (index.mjs:62:65)
+  at PresenceChild (PresenceChild.mjs:18:11)
+  at AnimatePresence (index.mjs:55:11)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at MotionDOMComponent (index.mjs:62:65)
+  at PresenceChild (PresenceChild.mjs:18:11)
+  at AnimatePresence (index.mjs:55:11)
+  at div (<anonymous>)
+  at BondingCurveConfigurator (bonding-curve-configurator.tsx:20:3)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at MintPackager (mint-packager.tsx:61:32)
+  at div (<anonymous>)
+  at AudioStudioProject (VM20041 audio-studio-project.tsx:46:78)
+  at AudioStudioWrapper (page.tsx:10:39)
+  at Suspense (<anonymous>)
+  at AudioStudioPage (<anonymous>)
+  at ClientPageRoot (client-page.js:14:11)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at main (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at DashboardLayout (dashboard-layout.tsx:10:35)
+  at DashboardRootLayout [Server] (<anonymous>)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at UserProvider (user-context.tsx:53:32)
+  at WalletModalProvider (WalletModalProvider.js:11:32)
+  at WalletProviderBase (WalletProviderBase.js:14:31)
+  at WalletProvider (WalletProvider.js:38:27)
+  at ConnectionProvider (ConnectionProvider.js:11:31)
+  at Providers (index.tsx:15:29)
+  at body (<anonymous>)
+  at html (<anonymous>)
+  at RootLayout [Server] (<anonymous>)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+  at ReactDevOverlay (ReactDevOverlay.js:80:9)
+  at HotReload (hot-reloader-client.js:379:11)
+  at Router (app-router.js:155:11)
+  at ErrorBoundaryHandler (error-boundary.js:120:9)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at AppRouter (app-router.js:549:11)
+  at ServerRoot (app-index.js:142:46)
+  at Root (app-index.js:162:11)
+  overrideMethod @ hook.js:608
+  warn @ LogUtils.js:19
+  eval @ ResponsiveContainer.js:186
+  react-stack-bottom-frame @ react-dom-client.development.js:22339
+  renderWithHooks @ react-dom-client.development.js:5731
+  updateForwardRef @ react-dom-client.development.js:7736
+  beginWork @ react-dom-client.development.js:9988
+  runWithFiberInDEV @ react-dom-client.development.js:544
+  performUnitOfWork @ react-dom-client.development.js:14986
+  workLoopSync @ react-dom-client.development.js:14816
+  renderRootSync @ react-dom-client.development.js:14794
+  performWorkOnRoot @ react-dom-client.development.js:14288
+  performSyncWorkOnRoot @ react-dom-client.development.js:15857
+  flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:15719
+  processRootScheduleInMicrotask @ react-dom-client.development.js:15753
+  eval @ react-dom-client.development.js:15873
+  hook.js:600 The width(-1) and height(-1) of chart should be greater than 0, please check the style of container, or the props width(100%) and height(100%), or add a minWidth(0) or minHeight(undefined) or use aspect(undefined) to control the height and width. Error Component Stack
+  at eval (ResponsiveContainer.js:111:11)
+  at eval (ResponsiveContainer.js:219:38)
+  at div (<anonymous>)
+  at MotionDOMComponent (index.mjs:62:65)
+  at PresenceChild (PresenceChild.mjs:18:11)
+  at AnimatePresence (index.mjs:55:11)
+  at div (<anonymous>)
+  at BondingCurveChart (bonding-curve-chart.tsx:32:3)
+  at div (<anonymous>)
+  at MotionDOMComponent (index.mjs:62:65)
+  at PresenceChild (PresenceChild.mjs:18:11)
+  at AnimatePresence (index.mjs:55:11)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at MotionDOMComponent (index.mjs:62:65)
+  at PresenceChild (PresenceChild.mjs:18:11)
+  at AnimatePresence (index.mjs:55:11)
+  at div (<anonymous>)
+  at BondingCurveConfigurator (bonding-curve-configurator.tsx:20:3)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at MintPackager (mint-packager.tsx:61:32)
+  at div (<anonymous>)
+  at AudioStudioProject (VM20041 audio-studio-project.tsx:46:78)
+  at AudioStudioWrapper (page.tsx:10:39)
+  at Suspense (<anonymous>)
+  at AudioStudioPage (<anonymous>)
+  at ClientPageRoot (client-page.js:14:11)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at main (<anonymous>)
+  at div (<anonymous>)
+  at div (<anonymous>)
+  at DashboardLayout (dashboard-layout.tsx:10:35)
+  at DashboardRootLayout [Server] (<anonymous>)
+  at InnerLayoutRouter (layout-router.js:229:11)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at LoadingBoundary (layout-router.js:327:11)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at InnerScrollAndFocusHandler (layout-router.js:139:9)
+  at ScrollAndFocusHandler (layout-router.js:214:11)
+  at RenderFromTemplateContext (render-from-template-context.js:16:44)
+  at OuterLayoutRouter (layout-router.js:348:11)
+  at UserProvider (user-context.tsx:53:32)
+  at WalletModalProvider (WalletModalProvider.js:11:32)
+  at WalletProviderBase (WalletProviderBase.js:14:31)
+  at WalletProvider (WalletProvider.js:38:27)
+  at ConnectionProvider (ConnectionProvider.js:11:31)
+  at Providers (index.tsx:15:29)
+  at body (<anonymous>)
+  at html (<anonymous>)
+  at RootLayout [Server] (<anonymous>)
+  at RedirectErrorBoundary (redirect-boundary.js:74:9)
+  at RedirectBoundary (redirect-boundary.js:82:11)
+  at NotFoundErrorBoundary (not-found-boundary.js:76:9)
+  at NotFoundBoundary (not-found-boundary.js:84:11)
+  at DevRootNotFoundBoundary (dev-root-not-found-boundary.js:33:11)
+  at ReactDevOverlay (ReactDevOverlay.js:80:9)
+  at HotReload (hot-reloader-client.js:379:11)
+  at Router (app-router.js:155:11)
+  at ErrorBoundaryHandler (error-boundary.js:120:9)
+  at ErrorBoundary (error-boundary.js:167:11)
+  at AppRouter (app-router.js:549:11)
+  at ServerRoot (app-index.js:142:46)
+  at Root (app-index.js:162:11)
+  overrideMethod @ hook.js:600
+  warn @ LogUtils.js:19
+  eval @ ResponsiveContainer.js:186
+  react-stack-bottom-frame @ react-dom-client.development.js:22339
+  renderWithHooksAgain @ react-dom-client.development.js:5831
+  renderWithHooks @ react-dom-client.development.js:5743
+  updateForwardRef @ react-dom-client.development.js:7736
+  beginWork @ react-dom-client.development.js:9988
+  runWithFiberInDEV @ react-dom-client.development.js:544
+  performUnitOfWork @ react-dom-client.development.js:14986
+  workLoopSync @ react-dom-client.development.js:14816
+  renderRootSync @ react-dom-client.development.js:14794
+  performWorkOnRoot @ react-dom-client.development.js:14288
+  performSyncWorkOnRoot @ react-dom-client.development.js:15857
+  flushSyncWorkAcrossRoots_impl @ react-dom-client.development.js:15719
+  processRootScheduleInMicrotask @ react-dom-client.development.js:15753
+  eval @ react-dom-client.development.js:15873
+  hot-reloader-client.js:241 [Fast Refresh] rebuilding
+  VM20041 audio-studio-project.tsx:716 🚀 Minting NFT with data: {name: 'Untitled PEPE Project', symbol: 'DIAL', description: 'A unique audio NFT created on Dial.WTF - your sound, on-chain forever.', artistName: '2agjAk...3kWC', audioUrl: 'blob:http://localhost:3000/8e35bcd3-1d84-469c-a1d8-bfe0079198ee', …}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM20092 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  VM20092 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  hot-reloader-client.js:68 [Fast Refresh] done in 3407ms
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  webpack.js?v=1761891132033:366 [HMR] unexpected require((app-pages-browser)/./src/lib/wallet-mint-service.ts) from disposed module (app-pages-browser)/./src/components/studio/audio-studio-project.tsx
+  overrideMethod @ hook.js:608
+  fn @ webpack.js?v=1761891132033:366
+  Promise.then
+  handleMintNFT @ VM20041 audio-studio-project.tsx:727
+  handleMint @ mint-packager.tsx:200
+  onClick @ mint-packager.tsx:682
+  processDispatchQueue @ react-dom-client.development.js:16033
+  eval @ react-dom-client.development.js:16636
+  batchedUpdates$1 @ react-dom-client.development.js:3103
+  dispatchEventForPluginEventSystem @ react-dom-client.development.js:16192
+  dispatchEvent @ react-dom-client.development.js:20264
+  dispatchDiscreteEvent @ react-dom-client.development.js:20232
+  webpack.js?v=1761891132033:366 [HMR] unexpected require((app-pages-browser)/./src/lib/nft-mint-client.ts) from disposed module (app-pages-browser)/./src/components/studio/audio-studio-project.tsx
+  overrideMethod @ hook.js:608
+  fn @ webpack.js?v=1761891132033:366
+  Promise.then
+  handleMintNFT @ VM20041 audio-studio-project.tsx:728
+  await in handleMintNFT
+  handleMint @ mint-packager.tsx:200
+  onClick @ mint-packager.tsx:682
+  processDispatchQueue @ react-dom-client.development.js:16033
+  eval @ react-dom-client.development.js:16636
+  batchedUpdates$1 @ react-dom-client.development.js:3103
+  dispatchEventForPluginEventSystem @ react-dom-client.development.js:16192
+  dispatchEvent @ react-dom-client.development.js:20264
+  dispatchDiscreteEvent @ react-dom-client.development.js:20232
+  VM20041 audio-studio-project.tsx:761 Minting progress: {step: 'uploading', message: 'Uploading metadata to storage...', percentage: 10}
+  wallet-mint-service.ts:135 📝 Building NFT metadata...
+  wallet-mint-service.ts:139 ☁️ Uploading metadata to storage...
+  hot-reloader-client.js:241 [Fast Refresh] rebuilding
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM21148 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  VM21148 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  hot-reloader-client.js:68 [Fast Refresh] done in 1132ms
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM20041 audio-studio-project.tsx:761 Minting progress: {step: 'creating', message: 'Creating NFT on Solana...', percentage: 40}
+  wallet-mint-service.ts:163 ⚡ Minting NFT on Solana with wallet...
+  hot-reloader-client.js:241 [Fast Refresh] rebuilding
+  hot-reloader-client.js:241 [Fast Refresh] rebuilding
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM21157 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  VM21157 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  hot-reloader-client.js:68 [Fast Refresh] done in 702ms
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  VM21167 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  VM21167 audio-studio-project.tsx:172 ⏳ Waiting for project to initialize WaveSurfer...
+  hot-reloader-client.js:68 [Fast Refresh] done in 2397ms
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+  hot-reloader-client.js:241 [Fast Refresh] rebuilding
+  wallet-mint-service.ts:225 ❌ Error minting NFT with wallet: FailedToSendTransactionError: The transaction could not be sent successfully to the network. Please check the underlying error below for more details.
+
+Source: RPC
+
+Caused By: Error: Simulation failed.
+Message: Transaction simulation failed: Attempt to debit an account but found no record of a prior credit..
+Logs:
+[].
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+
+    at captureStackTrace (capture-stack-trace.js:13:23)
+    at console.error (intercept-console-error.js:51:62)
+    at mintNFTWithWallet (wallet-mint-service.ts:225:13)
+    at async handleMintNFT (VM21167 audio-studio-project.tsx:745:28)
+    at async handleMint (mint-packager.tsx:200:7)Caused by: SendTransactionError: Simulation failed.
+
+Message: Transaction simulation failed: Attempt to debit an account but found no record of a prior credit..
+Logs:
+[].
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+at Connection.sendEncodedTransaction (index.browser.esm.js:7529:13)
+at async Connection.sendRawTransaction (index.browser.esm.js:7494:20)
+at async RpcClient.sendTransaction (RpcClient.mjs:76:14)
+at async RpcClient.sendAndConfirmTransaction (RpcClient.mjs:103:23)
+at async TransactionBuilder.sendAndConfirm (TransactionBuilder.mjs:117:22)
+at async Object.handle (createNft.mjs:81:20)
+at async Disposable.run (Disposable.mjs:24:14)
+at async mintNFTWithWallet (wallet-mint-service.ts:175:21)
+at async handleMintNFT (VM21167 audio-studio-project.tsx:745:28)
+at async handleMint (mint-packager.tsx:200:7)
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:56
+mintNFTWithWallet @ wallet-mint-service.ts:225
+await in mintNFTWithWallet
+handleMintNFT @ VM20041 audio-studio-project.tsx:745
+await in handleMintNFT
+handleMint @ mint-packager.tsx:200
+onClick @ mint-packager.tsx:682
+processDispatchQueue @ react-dom-client.development.js:16033
+eval @ react-dom-client.development.js:16636
+batchedUpdates$1 @ react-dom-client.development.js:3103
+dispatchEventForPluginEventSystem @ react-dom-client.development.js:16192
+dispatchEvent @ react-dom-client.development.js:20264
+dispatchDiscreteEvent @ react-dom-client.development.js:20232
+VM20041 audio-studio-project.tsx:761 Minting progress: {step: 'error', message: 'The transaction could not be sent successfully to …or`and call`getLogs()` on it for full details.\n', percentage: 0}
+VM20041 audio-studio-project.tsx:767 Minting error: Error: Failed to mint NFT: The transaction could not be sent successfully to the network. Please check the underlying error below for more details.
+
+Source: RPC
+
+Caused By: Error: Simulation failed.
+Message: Transaction simulation failed: Attempt to debit an account but found no record of a prior credit..
+Logs:
+[].
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+
+    at captureStackTrace (capture-stack-trace.js:13:23)
+    at console.error (intercept-console-error.js:51:62)
+    at handleMintNFT (VM21167 audio-studio-project.tsx:767:21)
+    at async handleMint (mint-packager.tsx:200:7)
+
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:56
+handleMintNFT @ VM20041 audio-studio-project.tsx:767
+await in handleMintNFT
+handleMint @ mint-packager.tsx:200
+onClick @ mint-packager.tsx:682
+processDispatchQueue @ react-dom-client.development.js:16033
+eval @ react-dom-client.development.js:16636
+batchedUpdates$1 @ react-dom-client.development.js:3103
+dispatchEventForPluginEventSystem @ react-dom-client.development.js:16192
+dispatchEvent @ react-dom-client.development.js:20264
+dispatchDiscreteEvent @ react-dom-client.development.js:20232
+mint-packager.tsx:203 Minting failed: Error: Failed to mint NFT: The transaction could not be sent successfully to the network. Please check the underlying error below for more details.
+
+Source: RPC
+
+Caused By: Error: Simulation failed.
+Message: Transaction simulation failed: Attempt to debit an account but found no record of a prior credit..
+Logs:
+[].
+Catch the `SendTransactionError` and call `getLogs()` on it for full details.
+
+    at captureStackTrace (capture-stack-trace.js:13:23)
+    at console.error (intercept-console-error.js:51:62)
+    at handleMint (mint-packager.tsx:203:15)
+
+overrideMethod @ hook.js:608
+error @ intercept-console-error.js:56
+handleMint @ mint-packager.tsx:203
+await in handleMint
+onClick @ mint-packager.tsx:682
+processDispatchQueue @ react-dom-client.development.js:16033
+eval @ react-dom-client.development.js:16636
+batchedUpdates$1 @ react-dom-client.development.js:3103
+dispatchEventForPluginEventSystem @ react-dom-client.development.js:16192
+dispatchEvent @ react-dom-client.development.js:20264
+dispatchDiscreteEvent @ react-dom-client.development.js:20232
+hot-reloader-client.js:68 [Fast Refresh] done in 3292ms
+user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
+user-context.tsx:62 🔍 Wallet Detection: {connected: true, connecting: false, address: '2agjAkvM...'}
