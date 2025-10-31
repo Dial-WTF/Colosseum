@@ -1,7 +1,5 @@
 {
-  "buildCommand": "pnpm -w run build:all",
-  "installCommand": "pnpm install",
-  "framework": null,
-  "outputDirectory": "apps/web/.next"
+  "buildCommand": "cd ../.. && pnpm -w run build:all",
+  "installCommand": "cd ../.. && pnpm install",
+  "outputDirectory": ".next"
 }
-
