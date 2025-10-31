@@ -6,7 +6,6 @@
 import {
   Metaplex,
   walletAdapterIdentity,
-  bundlrStorage,
 } from '@metaplex-foundation/js';
 import { Connection, PublicKey } from '@solana/web3.js';
 import type { WalletContextState } from '@solana/wallet-adapter-react';
@@ -201,6 +200,11 @@ export async function mintNFTWithWallet(
     const network = process.env.NEXT_PUBLIC_SOLANA_NETWORK || 'devnet';
     const explorerUrl = `https://solscan.io/token/${nft.mint.address.toString()}?cluster=${network}`;
 
+    // Get token account address (handle different Metaplex versions)
+    const tokenAccount = (nft as any).token?.address?.toString() || 
+                        (nft as any).tokenAddress?.toString() || 
+                        wallet.publicKey.toBase58();
+
     // Step 4: Complete
     onProgress?.({
       step: 'complete',
@@ -212,7 +216,7 @@ export async function mintNFTWithWallet(
       mint: nft.mint.address.toString(),
       metadata: nft.metadataAddress.toString(),
       masterEdition: nft.edition?.address.toString(),
-      tokenAccount: nft.token.address.toString(),
+      tokenAccount,
       signature,
       explorerUrl,
       metadataUri,

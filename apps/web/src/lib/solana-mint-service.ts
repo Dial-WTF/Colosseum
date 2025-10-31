@@ -6,7 +6,6 @@
 import {
   Metaplex,
   keypairIdentity,
-  bundlrStorage,
   toMetaplexFile,
   CreateNftOutput,
 } from '@metaplex-foundation/js';
@@ -17,11 +16,6 @@ import {
   Transaction,
   TransactionInstruction,
 } from '@solana/web3.js';
-import {
-  createCreateMasterEditionV3Instruction,
-  createCreateMetadataAccountV3Instruction,
-  PROGRAM_ID as TOKEN_METADATA_PROGRAM_ID,
-} from '@metaplex-foundation/mpl-token-metadata';
 import { createMint, getOrCreateAssociatedTokenAccount, mintTo } from '@solana/spl-token';
 import type { BondingCurveConfig } from '@dial/bonding-curve';
 
@@ -123,11 +117,16 @@ export async function createMasterEditionNFT(
     const network = process.env.SOLANA_NETWORK || 'devnet';
     const explorerUrl = `https://solscan.io/token/${nft.mint.address.toString()}?cluster=${network}`;
 
+    // Get token account address (handle different Metaplex versions)
+    const tokenAccount = (nft as any).token?.address?.toString() || 
+                        (nft as any).tokenAddress?.toString() || 
+                        owner.toBase58();
+
     return {
       mint: nft.mint.address.toString(),
       metadata: nft.metadataAddress.toString(),
       masterEdition: nft.edition?.address.toString(),
-      tokenAccount: nft.token.address.toString(),
+      tokenAccount,
       signature,
       explorerUrl,
     };
@@ -185,11 +184,16 @@ export async function createSFT(
     const network = process.env.SOLANA_NETWORK || 'devnet';
     const explorerUrl = `https://solscan.io/token/${nft.mint.address.toString()}?cluster=${network}`;
 
+    // Get token account address (handle different Metaplex versions)
+    const tokenAccount = (nft as any).token?.address?.toString() || 
+                        (nft as any).tokenAddress?.toString() || 
+                        owner.toBase58();
+
     return {
       mint: nft.mint.address.toString(),
       metadata: nft.metadataAddress.toString(),
       masterEdition: nft.edition?.address.toString(),
-      tokenAccount: nft.token.address.toString(),
+      tokenAccount,
       signature,
       explorerUrl,
     };
