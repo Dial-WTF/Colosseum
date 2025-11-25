@@ -820,6 +820,17 @@ export function AudioStudioProject() {
   }) => {
     if (!project) return;
 
+    // Validate audio URL before proceeding
+    if (!result.url || result.url.trim() === "" || result.url === "undefined") {
+      console.error("❌ Invalid audio URL received:", result.url);
+      alert(
+        "Audio generation failed: No valid audio URL received. The AI service may be unavailable or took too long. Please try again."
+      );
+      return;
+    }
+
+    console.log("✅ Valid audio URL received:", result.url);
+
     // Initialize WaveSurfer if not already initialized
     if (!wavesurferRef.current) {
       console.log("🚀 Initializing WaveSurfer for AI-generated audio...");
@@ -839,6 +850,7 @@ export function AudioStudioProject() {
 
     try {
       // Load AI-generated audio
+      console.log("📥 Loading audio into WaveSurfer...");
       wavesurferRef.current.load(result.url);
 
       // Clear any existing regions
@@ -846,8 +858,20 @@ export function AudioStudioProject() {
       setSelectedRegion(null);
 
       // Fetch and store audio buffer
+      console.log("🔄 Fetching audio data...");
       const response = await fetch(result.url);
+      
+      if (!response.ok) {
+        throw new Error(`Failed to fetch audio: ${response.status} ${response.statusText}`);
+      }
+      
       const arrayBuffer = await response.arrayBuffer();
+      
+      if (arrayBuffer.byteLength === 0) {
+        throw new Error("Received empty audio data");
+      }
+      
+      console.log("🎵 Decoding audio data...");
       const audioContext = new AudioContext();
       const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
       audioBufferRef.current = audioBuffer;

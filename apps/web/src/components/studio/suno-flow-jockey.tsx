@@ -78,6 +78,11 @@ export function SunoFlowJockey({ onGenerate }: SunoFlowJockeyProps) {
         throw new Error(data.error || "Music generation failed");
       }
 
+      // Validate that we received a valid audio URL
+      if (!data.audioUrl || data.audioUrl.trim() === "") {
+        throw new Error("No audio URL received from the AI service. Please try again.");
+      }
+
       onGenerate({
         url: data.audioUrl,
         prompt: enhancedPrompt,

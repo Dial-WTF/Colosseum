@@ -133,6 +133,15 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Final validation before returning
+    if (!firstTrack.audio_url) {
+      console.error('❌ No audio URL available after polling');
+      return NextResponse.json(
+        { error: 'Audio generation timed out. The audio is still being processed. Please try again in a moment.' },
+        { status: 202 } // 202 Accepted - request is still being processed
+      );
+    }
+
     console.log('✅ Suno music generation successful:', {
       id: firstTrack.id,
       status: firstTrack.status,
