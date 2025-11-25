@@ -214,11 +214,15 @@ export async function mintEditionWithMetadata(
 
   // 4. Mint through bonding curve (this handles payment automatically)
   console.log('⚡ Minting through bonding curve...');
-  const mintSignature = await bondingCurveClient.mintEdition({
-    bondingCurvePDA: params.bondingCurvePDA,
+  const mintTx = await bondingCurveClient.mintEdition({
+    collectionMint: params.collectionMint,
     editionMint,
     buyer: buyer.publicKey,
-  }, buyer);
+    authority: buyer.publicKey, // Buyer is also the authority for their own mint
+  });
+
+  // Sign and send transaction
+  const mintSignature = await sendAndConfirmTransaction(connection, mintTx, [buyer]);
 
   console.log('✅ Minted! Signature:', mintSignature);
 
