@@ -3,9 +3,13 @@
  * Uses Storj for decentralized storage
  */
 
-import { S3Worm } from '@decoperations/s3worm';
-import { S3Client, GetObjectCommand, ListObjectsV2Command } from '@aws-sdk/client-s3';
-import { getSignedUrl as awsGetSignedUrl } from '@aws-sdk/s3-request-presigner';
+import { S3Worm } from "@decoperations/s3worm";
+import {
+  S3Client,
+  GetObjectCommand,
+  ListObjectsV2Command,
+} from "@aws-sdk/client-s3";
+import { getSignedUrl as awsGetSignedUrl } from "@aws-sdk/s3-request-presigner";
 
 export interface StorjConfig {
   endpoint: string;
@@ -17,17 +21,22 @@ export interface StorjConfig {
 }
 
 /**
- * Get Storj configuration from environment variables
+ * Get Storj configuration from environment variables (backend only)
  * Returns null if configuration is missing (for development without Storj)
+ *
+ * WARNING: This function should ONLY be called from backend/API routes
+ * Never expose Storj credentials to the client-side
  */
 export function getStorjConfig(): StorjConfig | null {
-  const endpoint = process.env.NEXT_PUBLIC_STORJ_ENDPOINT || process.env.STORJ_ENDPOINT;
-  const bucket = process.env.NEXT_PUBLIC_STORJ_BUCKET || process.env.STORJ_BUCKET;
-  const accessKeyId = process.env.NEXT_PUBLIC_STORJ_ACCESS_KEY || process.env.STORJ_ACCESS_KEY;
-  const secretAccessKey = process.env.NEXT_PUBLIC_STORJ_SECRET_KEY || process.env.STORJ_SECRET_KEY;
+  const endpoint = process.env.STORJ_ENDPOINT;
+  const bucket = process.env.STORJ_BUCKET;
+  const accessKeyId = process.env.STORJ_ACCESS_KEY;
+  const secretAccessKey = process.env.STORJ_SECRET_KEY;
 
   if (!endpoint || !bucket || !accessKeyId || !secretAccessKey) {
-    console.warn('⚠️ Storj configuration not found. Storage features will be disabled.');
+    console.warn(
+      "⚠️ Storj configuration not found. Storage features will be disabled."
+    );
     return null;
   }
 
@@ -48,7 +57,7 @@ export function getStorjConfig(): StorjConfig | null {
  */
 export function createWormClient(config?: StorjConfig): S3Worm | null {
   const storjConfig = config || getStorjConfig();
-  
+
   if (!storjConfig) {
     return null;
   }
@@ -93,29 +102,34 @@ export function resetWormClient(): void {
  * @param expiresIn Time in seconds until the URL expires (default: 1 hour)
  * @returns Promise resolving to the signed URL or empty string if Storj is not configured
  */
-export async function getSignedUrl(filename: string, expiresIn: number = 3600): Promise<string> {
+export async function getSignedUrl(
+  filename: string,
+  expiresIn: number = 3600
+): Promise<string> {
   try {
     const config = getStorjConfig();
-    
+
     if (!config) {
-      console.warn('⚠️ Cannot generate signed URL: Storj not configured');
-      return '';
+      console.warn("⚠️ Cannot generate signed URL: Storj not configured");
+      return "";
     }
-    
+
     // Create a dedicated S3 client for signed URLs
     const s3Client = new S3Client({
       endpoint: config.endpoint,
-      region: 'us-east-1', // Storj uses us-east-1 as default
+      region: "us-east-1", // Storj uses us-east-1 as default
       credentials: {
         accessKeyId: config.credentials.accessKeyId,
         secretAccessKey: config.credentials.secretAccessKey,
       },
       forcePathStyle: true, // Required for Storj
     });
-    
+
     // Remove leading slash if present
-    const cleanFilename = filename.startsWith('/') ? filename.slice(1) : filename;
-    
+    const cleanFilename = filename.startsWith("/")
+      ? filename.slice(1)
+      : filename;
+
     // Create the GetObject command
     const command = new GetObjectCommand({
       Bucket: config.bucket,
@@ -124,16 +138,16 @@ export async function getSignedUrl(filename: string, expiresIn: number = 3600): 
 
     // Generate the signed URL
     const signedUrl = await awsGetSignedUrl(s3Client, command, { expiresIn });
-    
-    console.log('✅ Generated signed URL:', {
+
+    console.log("✅ Generated signed URL:", {
       filename: cleanFilename,
       expiresIn: `${expiresIn}s`,
       urlLength: signedUrl.length,
     });
-    
+
     return signedUrl;
   } catch (error) {
-    console.error('❌ Error generating signed URL:', error);
+    console.error("❌ Error generating signed URL:", error);
     throw error;
   }
 }
@@ -143,21 +157,25 @@ export async function getSignedUrl(filename: string, expiresIn: number = 3600): 
  * @deprecated Use getSignedUrl instead for better security
  * @param filename The file path within the bucket (e.g., "users/0x123.../avatar.png")
  * @returns The public URL to access the file
+ *
+ * WARNING: This function should ONLY be called from backend/API routes
  */
 export function getPublicUrl(filename: string): string {
-  const baseUrl = process.env.STORJ_PUBLIC_URL || process.env.NEXT_PUBLIC_STORJ_PUBLIC_URL;
-  
+  const baseUrl = process.env.STORJ_PUBLIC_URL;
+
   if (!baseUrl) {
-    console.warn('STORJ_PUBLIC_URL not set. Use getSignedUrl() instead for secure access.');
+    console.warn(
+      "STORJ_PUBLIC_URL not set. Use getSignedUrl() instead for secure access."
+    );
     return filename;
   }
-  
+
   // Remove leading slash if present
-  const cleanFilename = filename.startsWith('/') ? filename.slice(1) : filename;
-  
+  const cleanFilename = filename.startsWith("/") ? filename.slice(1) : filename;
+
   // Ensure base URL doesn't end with slash
-  const cleanBaseUrl = baseUrl.endsWith('/') ? baseUrl.slice(0, -1) : baseUrl;
-  
+  const cleanBaseUrl = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+
   return `${cleanBaseUrl}/${cleanFilename}`;
 }
 
@@ -166,50 +184,52 @@ export function getPublicUrl(filename: string): string {
  * @param prefix The prefix to filter objects by (e.g., "users/0x123.../assets/")
  * @returns Array of objects in the bucket (empty array if Storj is not configured)
  */
-export async function listObjects(prefix: string): Promise<Array<{
-  key: string;
-  size: number;
-  lastModified: string;
-  contentType?: string;
-}>> {
+export async function listObjects(prefix: string): Promise<
+  Array<{
+    key: string;
+    size: number;
+    lastModified: string;
+    contentType?: string;
+  }>
+> {
   try {
     const config = getStorjConfig();
-    
+
     if (!config) {
-      console.warn('⚠️ Cannot list objects: Storj not configured');
+      console.warn("⚠️ Cannot list objects: Storj not configured");
       return [];
     }
-    
+
     // Create a dedicated S3 client for listing objects
     const s3Client = new S3Client({
       endpoint: config.endpoint,
-      region: 'us-east-1', // Storj uses us-east-1 as default
+      region: "us-east-1", // Storj uses us-east-1 as default
       credentials: {
         accessKeyId: config.credentials.accessKeyId,
         secretAccessKey: config.credentials.secretAccessKey,
       },
       forcePathStyle: true, // Required for Storj
     });
-    
+
     // Remove leading slash if present
-    const cleanPrefix = prefix.startsWith('/') ? prefix.slice(1) : prefix;
-    
+    const cleanPrefix = prefix.startsWith("/") ? prefix.slice(1) : prefix;
+
     const command = new ListObjectsV2Command({
       Bucket: config.bucket,
       Prefix: cleanPrefix,
     });
 
     const response = await s3Client.send(command);
-    
+
     return (response.Contents || []).map((item: any) => ({
-      key: item.Key || '',
+      key: item.Key || "",
       size: item.Size || 0,
-      lastModified: item.LastModified?.toISOString() || new Date().toISOString(),
+      lastModified:
+        item.LastModified?.toISOString() || new Date().toISOString(),
       contentType: item.ContentType,
     }));
   } catch (error) {
-    console.error('Error listing objects:', error);
+    console.error("Error listing objects:", error);
     return [];
   }
 }
-

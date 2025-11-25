@@ -1,10 +1,9 @@
 /**
  * NFT Metadata Service
- * Handles uploading NFT metadata JSON to Storj storage
+ * Client-side service that communicates with backend API for metadata operations
  */
 
-import { getWormClient, getPublicUrl } from '@dial/worm';
-import type { BondingCurveConfig } from '@dial/bonding-curve';
+import type { BondingCurveConfig } from "@dial/bonding-curve";
 
 export interface NFTMetadataInput {
   name: string;
@@ -37,42 +36,34 @@ export interface UploadedMetadata {
 }
 
 /**
- * Upload NFT metadata JSON to Storj
+ * Upload NFT metadata JSON to Storj via backend API
  */
 export async function uploadNFTMetadata(
   metadata: NFTMetadataInput,
   walletAddress: string
 ): Promise<UploadedMetadata> {
   try {
-    // Generate filename with timestamp
-    const timestamp = Date.now();
-    const sanitizedName = metadata.name.replace(/[^a-zA-Z0-9-]/g, '_');
-    const filename = `users/${walletAddress}/nft-metadata/${timestamp}-${sanitizedName}.json`;
+    const response = await fetch("/api/metadata/upload", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ metadata, walletAddress }),
+    });
 
-    // Convert metadata to JSON buffer
-    const jsonString = JSON.stringify(metadata, null, 2);
-    const buffer = new TextEncoder().encode(jsonString);
-
-    // Upload to Storj
-    const worm = getWormClient();
-    
-    if (!worm) {
-      throw new Error('Worm client not available. Please check your Storj configuration.');
+    if (!response.ok) {
+      const error = await response
+        .json()
+        .catch(() => ({ error: "Unknown error" }));
+      throw new Error(error.error || `API error: ${response.status}`);
     }
-    
-    await worm.putBytes(filename, buffer, 'application/json');
 
-    // Generate public URL
-    const uri = getPublicUrl(filename);
-
-    return {
-      uri,
-      filename,
-      metadata,
-    };
+    return response.json();
   } catch (error) {
-    console.error('Error uploading NFT metadata:', error);
-    throw new Error(`Failed to upload NFT metadata: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    console.error("Error uploading NFT metadata:", error);
+    throw new Error(
+      `Failed to upload NFT metadata: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }`
+    );
   }
 }
 
@@ -115,19 +106,18 @@ export function buildNFTMetadata(input: {
 
   // Build properties object
   const files: Array<{ uri: string; type: string }> = [
-    { uri: input.imageUrl, type: 'image/png' },
+    { uri: input.imageUrl, type: "image/png" },
   ];
 
   if (input.audioUrl) {
-    files.push({ uri: input.audioUrl, type: 'audio/mpeg' });
+    files.push({ uri: input.audioUrl, type: "audio/mpeg" });
   }
 
   metadata.properties = {
     files,
-    category: input.audioUrl ? 'audio' : 'image',
+    category: input.audioUrl ? "audio" : "image",
     creators: input.creators || [],
   };
 
   return metadata;
 }
-
