@@ -165,8 +165,13 @@ export async function mintEditionWithMetadata(
   const bondingCurveClient = new BondingCurveClient(connection);
 
   // 1. Get current price
-  const curveState = await bondingCurveClient.getCurveState(params.bondingCurvePDA);
-  const currentPrice = curveState.basePrice + (curveState.currentSupply * curveState.priceIncrement);
+  const curveState = await bondingCurveClient.fetchBondingCurve(params.collectionMint);
+  
+  if (!curveState) {
+    throw new Error('Failed to fetch bonding curve state');
+  }
+  
+  const currentPrice = curveState.basePrice.toNumber() + (curveState.currentSupply * curveState.priceIncrement.toNumber());
   
   console.log(`💰 Current price: ${currentPrice / 1e9} SOL (Edition #${curveState.currentSupply + 1})`);
 
@@ -247,24 +252,28 @@ export async function getBondingCurveInfo(
 ) {
   const bondingCurveClient = new BondingCurveClient(connection);
   
-  const [bondingCurvePDA] = PublicKey.findProgramAddressSync(
-    [Buffer.from('bonding_curve'), collectionMint.toBuffer()],
-    BONDING_CURVE_PROGRAM_ID
-  );
+  const [bondingCurvePDA] = BondingCurveClient.getBondingCurvePDA(collectionMint);
 
-  const curveState = await bondingCurveClient.getCurveState(bondingCurvePDA);
-  const currentPrice = curveState.basePrice + (curveState.currentSupply * curveState.priceIncrement);
-  const nextPrice = curveState.basePrice + ((curveState.currentSupply + 1) * curveState.priceIncrement);
+  const curveState = await bondingCurveClient.fetchBondingCurve(collectionMint);
+  
+  if (!curveState) {
+    throw new Error('Failed to fetch bonding curve state');
+  }
+  
+  const basePriceNum = curveState.basePrice.toNumber();
+  const priceIncrementNum = curveState.priceIncrement.toNumber();
+  const currentPrice = basePriceNum + (curveState.currentSupply * priceIncrementNum);
+  const nextPrice = basePriceNum + ((curveState.currentSupply + 1) * priceIncrementNum);
 
   return {
     bondingCurvePDA,
     currentSupply: curveState.currentSupply,
     maxSupply: curveState.maxSupply,
-    basePrice: curveState.basePrice / 1e9, // Convert to SOL
-    priceIncrement: curveState.priceIncrement / 1e9,
+    basePrice: basePriceNum / 1e9, // Convert to SOL
+    priceIncrement: priceIncrementNum / 1e9,
     currentPrice: currentPrice / 1e9,
     nextPrice: nextPrice / 1e9,
-    totalVolume: curveState.totalVolume / 1e9,
+    totalVolume: curveState.totalVolume.toNumber() / 1e9,
   };
 }
 
