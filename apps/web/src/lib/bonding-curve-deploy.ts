@@ -10,6 +10,7 @@ import {
   Transaction,
   SystemProgram,
   SYSVAR_RENT_PUBKEY,
+  sendAndConfirmTransaction,
 } from '@solana/web3.js';
 import {
   createMint,
@@ -22,7 +23,7 @@ import {
   keypairIdentity,
   toMetaplexFile,
 } from '@metaplex-foundation/js';
-import { BondingCurveClient } from '@dial/bonding-curve-program';
+import { BondingCurveClient, CurveType } from '@dial/bonding-curve-program';
 import type { BondingCurveConfig } from '@dial/bonding-curve';
 
 // Mainnet Program ID
@@ -118,13 +119,22 @@ export async function deployCollectionWithBondingCurve(
   const basePrice = Math.floor(params.bondingCurve.basePrice * 1e9); // Convert SOL to lamports
   const priceIncrement = Math.floor(params.bondingCurve.priceIncrement * 1e9);
 
-  const { bondingCurvePDA, signature } = await bondingCurveClient.initializeCurve({
+  const initCurveTx = await bondingCurveClient.initializeCurve({
     authority: payer.publicKey,
     collectionMint: collection.mint.address,
+    curveType: CurveType.Linear, // Default to linear curve
     basePrice,
     priceIncrement,
     maxSupply: params.bondingCurve.maxSupply,
-  }, payer);
+  });
+
+  // Sign and send transaction
+  const signature = await sendAndConfirmTransaction(connection, initCurveTx, [payer]);
+
+  // Calculate the bonding curve PDA
+  const [bondingCurvePDA] = BondingCurveClient.getBondingCurvePDA(
+    collection.mint.address
+  );
 
   console.log('✅ Bonding curve initialized:', bondingCurvePDA.toString());
 
