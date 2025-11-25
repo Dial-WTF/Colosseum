@@ -55,6 +55,11 @@ export async function uploadNFTMetadata(
 
     // Upload to Storj
     const worm = getWormClient();
+    
+    if (!worm) {
+      throw new Error('Worm client not available. Please check your Storj configuration.');
+    }
+    
     await worm.putBytes(filename, buffer, 'application/json');
 
     // Generate public URL

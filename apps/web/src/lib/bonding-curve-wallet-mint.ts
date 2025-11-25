@@ -245,7 +245,10 @@ export async function mintNFTWithBondingCurve(
       image: params.imageUrl,
       animation_url: params.audioUrl,
       external_url: 'https://dial.wtf',
-      attributes: params.attributes || [],
+      attributes: (params.attributes || []).map(attr => ({
+        trait_type: attr.trait_type,
+        value: typeof attr.value === 'number' ? attr.value.toString() : attr.value,
+      })),
       properties: {
         files: [
           {

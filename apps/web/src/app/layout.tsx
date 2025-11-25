@@ -5,6 +5,9 @@ import { Providers } from '@/providers';
 
 const inter = Inter({ subsets: ['latin'] });
 
+// Disable static generation for wallet adapter compatibility
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: 'Dial.WTF - Solana Ringtone NFT Marketplace',
   description: 'Limited edition Solana ringtone NFTs. Mint, collect, and trade unique ringtones on the blockchain.',
